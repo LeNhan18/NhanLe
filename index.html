@@ -1,242 +1,747 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fireworks</title>
-    <style>
-        body {
-            overflow: hidden;
-            margin: 0;
-            background: #000814;
-        }
-        #info {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: white;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-            z-index: 100;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-        }
-    </style>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Lồng Đèn Sao — Galaxy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Be+Vietnam+Pro:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; height:100%; overflow:hidden; background:#050409; }
+  body{ font-family:'Be Vietnam Pro', sans-serif; color:#e9dfc8; }
+
+  /* ---- Bầu trời phía sau ---- */
+  #sky{ position:fixed; inset:0; display:block; z-index:0; }
+
+  /* ---- Con lắc treo đèn ---- */
+  #pendulum{
+    position:fixed; left:50%; top:0; z-index:2;
+    display:flex; flex-direction:column; align-items:center;
+    width:max-content; transform-origin:50% 0; will-change:transform;
+    pointer-events:none;
+  }
+  #cord{ width:2px; height:170px; background:rgba(255,222,175,.10); pointer-events:none; }
+  #lantern{
+    display:block; pointer-events:auto; cursor:grab; touch-action:none;
+    will-change:transform;
+  }
+  #lantern.drag{ cursor:grabbing; }
+
+  /* ---- Tiêu đề ---- */
+  header{ position:fixed; left:46px; top:42px; z-index:5; pointer-events:none; }
+  header .rule{ width:36px; height:1px; background:rgba(242,214,160,.55); margin-bottom:16px; }
+  header h1{
+    margin:0; font:500 clamp(30px,4vw,44px) 'Cormorant Garamond', serif;
+    color:#f1e7cf; letter-spacing:.05em; line-height:1;
+  }
+  header p{
+    margin:12px 0 0 2px; font:300 10px 'Be Vietnam Pro';
+    letter-spacing:.42em; color:rgba(220,206,176,.48);
+  }
+
+  /* ---- Gợi ý ---- */
+  #hint{
+    position:fixed; left:50%; bottom:98px; transform:translateX(-50%);
+    z-index:5; pointer-events:none; text-align:center;
+    font:italic 400 15px 'Cormorant Garamond', serif;
+    color:rgba(235,224,200,.58); letter-spacing:.04em;
+    opacity:0; transition:opacity 1.4s ease;
+  }
+  #hint.show{ opacity:1; }
+
+  /* ---- Bảng điều khiển ---- */
+  #panel{
+    position:fixed; left:50%; bottom:26px; transform:translateX(-50%);
+    z-index:6; display:flex; align-items:center; flex-wrap:wrap;
+    justify-content:center; gap:20px; row-gap:10px; max-width:94vw;
+    padding:12px 22px; border:1px solid rgba(236,227,205,.13);
+    background:rgba(9,8,13,.55); backdrop-filter:blur(10px);
+    border-radius:2px;
+  }
+  #panel .sep{ width:1px; height:16px; background:rgba(236,227,205,.14); }
+  #panel button{
+    background:none; border:none; padding:6px 2px; cursor:pointer;
+    font:300 11px 'Be Vietnam Pro'; letter-spacing:.22em;
+    color:rgba(232,222,200,.45); position:relative; transition:color .3s;
+  }
+  #panel button:hover{ color:#e8dcc0; }
+  #panel button.on{ color:#f2e4c4; }
+  #panel button.on::after{
+    content:''; position:absolute; left:8%; right:8%; bottom:0;
+    height:1px; background:rgba(242,214,160,.7);
+  }
+  .modes{ display:flex; gap:16px; }
+  .tempo{ display:flex; align-items:center; gap:10px; }
+  .tempo span{
+    font:300 10px 'Be Vietnam Pro'; letter-spacing:.24em;
+    color:rgba(232,222,200,.5);
+  }
+  #tempoVal{
+    min-width:44px; color:rgba(242,224,190,.78);
+    letter-spacing:.08em; font-variant-numeric:tabular-nums;
+  }
+  input[type=range]{ -webkit-appearance:none; appearance:none; width:110px; height:18px; background:transparent; cursor:pointer; }
+  input[type=range]::-webkit-slider-runnable-track{ height:1px; background:rgba(232,222,200,.28); }
+  input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:9px; height:9px; border-radius:50%; background:#e8c88d; margin-top:-4px; }
+  input[type=range]::-moz-range-track{ height:1px; background:rgba(232,222,200,.28); }
+  input[type=range]::-moz-range-thumb{ width:9px; height:9px; border:0; border-radius:50%; background:#e8c88d; }
+
+  @media (max-width:640px){
+    header{ left:24px; top:24px; }
+    #panel{ gap:14px; padding:10px 14px; bottom:18px; }
+    #hint{ bottom:120px; width:88vw; }
+  }
+</style>
 </head>
 <body>
-    <div id="info">Click để bắn pháo hoa! 🎆</div>
-    
-    <script type="module">
-        import * as THREE from "https://cdn.skypack.dev/three@0.136.0";
-        import { OrbitControls } from "https://cdn.skypack.dev/three@0.136.0/examples/jsm/controls/OrbitControls";
 
-        let scene = new THREE.Scene();
-        scene.background = new THREE.Color('#000814');
-        
-        let camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
-        camera.position.set(0, 0, 35);
-        
-        let renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(innerWidth, innerHeight);
-        document.body.appendChild(renderer.domElement);
-        
-        window.addEventListener("resize", () => {
-            camera.aspect = innerWidth / innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(innerWidth, innerHeight);
-        });
+<canvas id="sky"></canvas>
 
-        let controls = new OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
+<div id="pendulum">
+  <div id="cord"></div>
+  <canvas id="lantern"></canvas>
+</div>
 
-        class Firework {
-            constructor(x, z, color, type) {
-                this.particles = [];
-                this.exploded = false;
-                this.dead = false;
-                this.launchHeight = Math.random() * 8 + 10;
-                this.startPos = new THREE.Vector3(x, 0, z);
-                this.currentPos = this.startPos.clone();
-                this.velocity = new THREE.Vector3(0, Math.random() * 0.3 + 0.4, 0);
-                this.gravity = -0.008;
-                this.color = color || new THREE.Color().setHSL(Math.random(), 1, 0.6);
-                this.trail = [];
-                this.time = 0;
-                this.type = type || Math.floor(Math.random() * 5);
-                
-                this.createRocket();
-            }
+<header>
+  <div class="rule"></div>
+  <h1>Lồng Đèn Sao</h1>
+  <p>MỘT GÓC TRỜI GALAXY GÓI TRONG ĐÈN GIẤY</p>
+</header>
 
-            createRocket() {
-                const geometry = new THREE.BufferGeometry();
-                const positions = [0, 0, 0];
-                geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-                
-                const material = new THREE.PointsMaterial({
-                    size: 0.3,
-                    color: this.color,
-                    transparent: true,
-                    blending: THREE.AdditiveBlending
-                });
-                
-                this.rocket = new THREE.Points(geometry, material);
-                this.rocket.position.copy(this.startPos);
-                scene.add(this.rocket);
-            }
+<div id="hint">Kéo rồi buông để chiếc đèn đung đưa — chạm một nhịp để nó bừng sáng.</div>
 
-            explode() {
-                if (this.exploded) return;
-                this.exploded = true;
-                scene.remove(this.rocket);
-                
-                const particleCount = Math.floor(Math.random() * 200) + 150;
-                const positions = [];
-                const velocities = [];
-                const colors = [];
-                const sizes = [];
-                const lifetimes = [];
-                
-                for (let i = 0; i < particleCount; i++) {
-                    positions.push(this.currentPos.x, this.currentPos.y, this.currentPos.z);
-                    
-                    const theta = Math.random() * Math.PI * 2;
-                    const phi = Math.acos(Math.random() * 2 - 1);
-                    const speed = Math.random() * 0.3 + 0.1;
-                    
-                    velocities.push(
-                        Math.sin(phi) * Math.cos(theta) * speed,
-                        Math.sin(phi) * Math.sin(theta) * speed,
-                        Math.cos(phi) * speed
-                    );
-                    
-                    const hue = this.color.getHSL({}).h;
-                    const particleColor = new THREE.Color().setHSL(
-                        hue + (Math.random() - 0.5) * 0.1,
-                        1,
-                        0.5 + Math.random() * 0.3
-                    );
-                    colors.push(particleColor.r, particleColor.g, particleColor.b);
-                    
-                    sizes.push(Math.random() * 0.5 + 0.3);
-                    lifetimes.push(Math.random() * 2 + 1);
-                }
-                
-                const geometry = new THREE.BufferGeometry();
-                geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-                geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-                geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
-                
-                const material = new THREE.PointsMaterial({
-                    size: 0.2,
-                    transparent: true,
-                    vertexColors: true,
-                    blending: THREE.AdditiveBlending,
-                    depthWrite: false
-                });
-                
-                this.particles = new THREE.Points(geometry, material);
-                this.particleVelocities = velocities;
-                this.particleLifetimes = lifetimes;
-                this.particleAges = new Array(particleCount).fill(0);
-                
-                scene.add(this.particles);
-            }
+<div id="panel">
+  <div class="modes">
+    <button data-m="off">TẮT</button>
+    <button data-m="steady">TĨNH</button>
+    <button data-m="breath" class="on">THỞ</button>
+    <button data-m="flicker">CHỚP</button>
+  </div>
+  <span class="sep"></span>
+  <label class="tempo">
+    <span>NHỊP</span>
+    <input id="tempo" type="range" min="0.25" max="2.4" step="0.05" value="1">
+    <span id="tempoVal">1.00×</span>
+  </label>
+  <span class="sep"></span>
+  <button id="snd" class="on">ÂM · MỞ</button>
+</div>
 
-            update(delta) {
-                this.time += delta;
-                
-                if (!this.exploded) {
-                    this.velocity.y += this.gravity;
-                    this.currentPos.add(this.velocity);
-                    this.rocket.position.copy(this.currentPos);
-                    
-                    if (this.currentPos.y >= this.launchHeight) {
-                        this.explode();
-                    }
-                } else {
-                    const positions = this.particles.geometry.attributes.position.array;
-                    const count = positions.length / 3;
-                    let allDead = true;
-                    
-                    for (let i = 0; i < count; i++) {
-                        this.particleAges[i] += delta;
-                        
-                        if (this.particleAges[i] < this.particleLifetimes[i]) {
-                            allDead = false;
-                            
-                            const idx = i * 3;
-                            positions[idx] += this.particleVelocities[idx] * delta * 60;
-                            positions[idx + 1] += this.particleVelocities[idx + 1] * delta * 60 - 0.5 * 0.008 * delta * 60;
-                            positions[idx + 2] += this.particleVelocities[idx + 2] * delta * 60;
-                            
-                            this.particleVelocities[idx + 1] -= 0.008 * delta * 60;
-                        }
-                    }
-                    
-                    this.particles.geometry.attributes.position.needsUpdate = true;
-                    
-                    const age = this.time - 1;
-                    const maxAge = Math.max(...this.particleLifetimes);
-                    this.particles.material.opacity = Math.max(0, 1 - (age / maxAge));
-                    
-                    if (allDead || this.particles.material.opacity <= 0) {
-                        this.dead = true;
-                        scene.remove(this.particles);
-                    }
-                }
-            }
-        }
+<script>
+(() => {
+'use strict';
+const TAU = Math.PI * 2;
+const clamp = (v,a,b) => v < a ? a : v > b ? b : v;
+const rand  = (a,b) => a + Math.random() * (b - a);
+const pick  = arr => arr[(Math.random() * arr.length) | 0];
+const gauss = () => (Math.random()+Math.random()+Math.random()-1.5)/1.5;
 
-        let fireworks = [];
-        let clock = new THREE.Clock();
+/* ================= Các phần tử & trạng thái ================= */
+const sky     = document.getElementById('sky');
+const sctx    = sky.getContext('2d');
+const lantern = document.getElementById('lantern');
+const lctx    = lantern.getContext('2d');
+const pend    = document.getElementById('pendulum');
+const cord    = document.getElementById('cord');
+const hint    = document.getElementById('hint');
 
-        function launchFirework(x, z) {
-            const colors = [
-                new THREE.Color('#ff0080'),
-                new THREE.Color('#00ff80'),
-                new THREE.Color('#8000ff'),
-                new THREE.Color('#ffff00'),
-                new THREE.Color('#00ffff'),
-                new THREE.Color('#ff4040'),
-                new THREE.Color('#40ff40'),
-            ];
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            fireworks.push(new Firework(x, z, color));
-        }
+let W, H, dpr;
+let R = 220;                       // bán kính ngôi sao
+const padTop = 44, tailH = 100;    // đệm trên & chiều cao đuôi đèn
+let lw, lh, cordLen = 170;
 
-        // Auto launch
-        setInterval(() => {
-            const x = (Math.random() - 0.5) * 20;
-            const z = (Math.random() - 0.5) * 15;
-            launchFirework(x, z);
-        }, 800);
+let rimPath, facePath, spokes;     // hình học khung đèn
+let stars = [], parts = [], sparks = [], rings = [];
+let bgNeb = null, neb = null, nebSize = 0, nebA = 0;
 
-        // Click to launch
-        renderer.domElement.addEventListener('click', (event) => {
-            const x = (event.clientX / innerWidth - 0.5) * 25;
-            const z = (event.clientY / innerHeight - 0.5) * -20;
-            launchFirework(x, z);
-        });
+let theta = 0.14, omega = -0.45;   // góc & vận tốc con lắc
+let dragging = false, tailSway = 0;
+let pulse = 0;                     // xung sáng khi chạm đèn
+let mode = 'breath', speed = 1, B = 0.6;
+let flick = { t: 0, target: 0.9 };
+let jit = 0, jitT = 0;
+let soundOn = true, actx = null;
+let last = performance.now();
+let shot = null, shotTimer = 5;
 
-        // Animation loop
-        renderer.setAnimationLoop(() => {
-            const delta = clock.getDelta();
-            controls.update();
-            
-            for (let i = fireworks.length - 1; i >= 0; i--) {
-                fireworks[i].update(delta);
-                if (fireworks[i].dead) {
-                    fireworks.splice(i, 1);
-                }
-            }
-            
-            renderer.render(scene, camera);
-        });
+const PAL = ['#fff4e2', '#ffe2ab', '#9fe4d4', '#f2b498'];
+const TILT = -0.26;                // độ nghiêng đĩa thiên hà
 
-        // Launch initial fireworks
-        setTimeout(() => launchFirework(0, 0), 500);
-        setTimeout(() => launchFirework(-10, -5), 1000);
-        setTimeout(() => launchFirework(10, 5), 1500);
-    </script>
+/* ================= Hình học ngôi sao ================= */
+function starPath(Ro, Ri, n = 8){
+  const p = new Path2D();
+  for(let i = 0; i < n * 2; i++){
+    const ang = -Math.PI/2 + i * Math.PI / n;
+    const rad = (i % 2 === 0) ? Ro : Ri;
+    const x = Math.cos(ang) * rad, y = Math.sin(ang) * rad;
+    i ? p.lineTo(x, y) : p.moveTo(x, y);
+  }
+  p.closePath();
+  return p;
+}
+
+function buildPaths(){
+  rimPath  = starPath(R, R * 0.52);
+  facePath = starPath(R * 0.94, R * 0.52 * 0.94);
+  spokes = [];
+  for(let k = 0; k < 8; k++) spokes.push(-Math.PI/2 + k * Math.PI/4);
+}
+
+/* ================= Tinh vân bên trong đèn (vẽ 1 lần) ================= */
+function buildNebula(){
+  nebSize = Math.ceil(R * 1.95);
+  neb = document.createElement('canvas');
+  neb.width = neb.height = nebSize;
+  const n = neb.getContext('2d');
+  n.translate(nebSize/2, nebSize/2);
+  n.globalCompositeOperation = 'lighter';
+  const cols = [[62,208,186],[236,146,108],[126,102,172],[255,201,138]];
+
+  // hai nhánh xoáy ốc
+  for(let i = 0; i < 30; i++){
+    const arm = i % 2;
+    const a = i * 0.52 + arm * Math.PI;
+    const rr = (0.06 + i * 0.031) * nebSize * 0.5;
+    const x = Math.cos(a) * rr * 1.12, y = Math.sin(a) * rr * 0.68;
+    const s = nebSize * (0.09 + Math.random() * 0.11);
+    const c = cols[(Math.random() * 4) | 0];
+    const g = n.createRadialGradient(x, y, 0, x, y, s);
+    g.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${0.20 + Math.random()*0.14})`);
+    g.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
+    n.fillStyle = g;
+    n.beginPath(); n.arc(x, y, s, 0, TAU); n.fill();
+  }
+  // lõi khí sáng
+  const core = n.createRadialGradient(0, 0, 0, 0, 0, nebSize * 0.2);
+  core.addColorStop(0, 'rgba(255,236,200,0.5)');
+  core.addColorStop(1, 'rgba(255,236,200,0)');
+  n.fillStyle = core;
+  n.beginPath(); n.arc(0, 0, nebSize * 0.2, 0, TAU); n.fill();
+  // bụi trời
+  for(let i = 0; i < 420; i++){
+    const r = Math.pow(Math.random(), 0.6) * nebSize * 0.46;
+    const a = rand(0, TAU);
+    const x = Math.cos(a) * r * 1.1, y = Math.sin(a) * r * 0.68;
+    n.fillStyle = `rgba(255,240,215,${rand(0.04,0.1)})`;
+    n.beginPath(); n.arc(x, y, 0.7, 0, TAU); n.fill();
+  }
+}
+
+/* ================= Dải ngân hà mờ trên nền trời (vẽ 1 lần) ================= */
+function buildBG(){
+  bgNeb = document.createElement('canvas');
+  bgNeb.width = W; bgNeb.height = H;
+  const b = bgNeb.getContext('2d');
+  b.fillStyle = '#050409'; b.fillRect(0, 0, W, H);
+  b.globalCompositeOperation = 'lighter';
+  const cols = [[58,190,170],[210,130,100],[110,92,150],[235,220,190]];
+  const x0 = -0.08*W, y0 = 0.92*H, x1 = 1.08*W, y1 = 0.06*H;
+  const sc = W/1400 + 0.4;
+
+  for(let i = 0; i < 3; i++){ // vài mây lớn rất mờ
+    const u = 0.2 + i * 0.3;
+    const x = x0+(x1-x0)*u, y = y0+(y1-y0)*u + gauss()*H*0.06;
+    const g = b.createRadialGradient(x, y, 0, x, y, H*0.5);
+    g.addColorStop(0, 'rgba(150,130,160,0.028)');
+    g.addColorStop(1, 'rgba(150,130,160,0)');
+    b.fillStyle = g; b.fillRect(x-H*0.5, y-H*0.5, H, H);
+  }
+  for(let i = 0; i < 120; i++){ // các đốm tinh vân dọc dải
+    const u = Math.random();
+    const x = x0+(x1-x0)*u + gauss()*W*0.09;
+    const y = y0+(y1-y0)*u + gauss()*H*0.075;
+    const r = rand(40,170)*sc;
+    const c = pick(cols);
+    const g = b.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${rand(0.015,0.05)})`);
+    g.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
+    b.fillStyle = g; b.fillRect(x-r, y-r, r*2, r*2);
+  }
+  for(let i = 0; i < 500; i++){ // bụi sao tĩnh
+    const u = Math.random();
+    const x = x0+(x1-x0)*u + gauss()*W*0.08;
+    const y = y0+(y1-y0)*u + gauss()*H*0.07;
+    b.fillStyle = `rgba(255,244,226,${rand(0.03,0.09)})`;
+    b.fillRect(x, y, 0.8, 0.8);
+  }
+}
+
+/* ================= Sao trời twinkle & hạt galaxy ================= */
+function buildStars(){
+  const count = clamp((W*H/3600)|0, 200, 520);
+  stars = [];
+  for(let i = 0; i < count; i++){
+    const cr = Math.random();
+    stars.push({
+      x: rand(0, W), y: rand(0, H),
+      r: 0.4 + Math.pow(Math.random(), 2.2) * 1.3,
+      a: rand(0.25, 1),
+      tw: rand(0.4, 2.4), ph: rand(0, TAU),
+      col: cr < 0.8 ? '255,244,226' : cr < 0.92 ? '159,228,212' : '255,214,150'
+    });
+  }
+}
+
+function buildParts(){
+  parts = [];
+  for(let i = 0; i < 230; i++){
+    const rr = Math.pow(Math.random(), 0.7);
+    parts.push({
+      r: R * (0.10 + rr * 0.84),
+      a0: rand(0, TAU),
+      sp: 0.45 / (0.25 + rr * 1.6),
+      sz: Math.random() < 0.07 ? rand(1.8, 3.0) : rand(0.5, 1.6),
+      tw: rand(0.6, 3.4), ph: rand(0, TAU),
+      col: pick(PAL)
+    });
+  }
+}
+
+/* ================= Kích thước & dựng lại toàn bộ ================= */
+function resize(){
+  W = innerWidth; H = innerHeight;
+  dpr = Math.min(devicePixelRatio || 1, 2);
+  sky.width = W * dpr; sky.height = H * dpr;
+  sky.style.width = W + 'px'; sky.style.height = H + 'px';
+
+  R = clamp(Math.min(W * 0.30, H * 0.235), 130, 300);
+  const fixed = padTop + R * 2 + tailH + 70;
+  if(fixed > H * 0.985) R = clamp((H * 0.985 - padTop - tailH - 70) / 2, 110, 320);
+  cordLen = clamp(H * 0.985 - (padTop + R * 2 + tailH), 70, 300);
+
+  lw = R * 2 + 88;
+  lh = R * 2 + padTop + tailH + 8;
+  lantern.width = lw * dpr; lantern.height = lh * dpr;
+  lantern.style.width = lw + 'px'; lantern.style.height = lh + 'px';
+  cord.style.height = cordLen + 'px';
+
+  buildPaths(); buildNebula(); buildBG(); buildStars(); buildParts();
+}
+addEventListener('resize', resize);
+resize();
+
+/* ================= Vẽ lồng đèn ================= */
+function glowStroke(p, w, a){
+  if(a <= 0.003) return;
+  lctx.lineWidth = w;
+  lctx.strokeStyle = `rgba(255,190,115,${clamp(a,0,1)})`;
+  lctx.stroke(p);
+}
+
+function diamond(cx, cy, w, h){
+  lctx.beginPath();
+  lctx.moveTo(cx, cy - h/2); lctx.lineTo(cx + w/2, cy);
+  lctx.lineTo(cx, cy + h/2); lctx.lineTo(cx - w/2, cy);
+  lctx.closePath();
+}
+
+function drawTail(t, b){
+  const sw = tailSway + Math.sin(t * 1.4) * 0.02;
+  lctx.save();
+  lctx.translate(0, R * 0.99);
+  lctx.rotate(sw);
+  // dây ruột
+  lctx.strokeStyle = 'rgba(210,190,160,0.45)'; lctx.lineWidth = 1.5;
+  lctx.beginPath(); lctx.moveTo(0, 0); lctx.lineTo(0, 77); lctx.stroke();
+  // ba chiếc thoi
+  const d1 = [24, 15, 21], d2 = [52, 11, 16], d3 = [71, 8, 12];
+  for(const [cy, w, h] of [d1, d2, d3]){
+    diamond(0, cy, w, h);
+    lctx.fillStyle = `rgba(255,203,138,${0.08 + 0.30 * b})`; lctx.fill();
+    lctx.strokeStyle = '#241a12'; lctx.lineWidth = 2.4; lctx.stroke();
+    lctx.strokeStyle = `rgba(255,206,142,${0.08 + 0.28 * b})`; lctx.lineWidth = 0.8; lctx.stroke();
+  }
+  // tua rủ
+  lctx.strokeStyle = `rgba(255,210,150,${0.12 + 0.3 * b})`; lctx.lineWidth = 1;
+  for(const dx of [-7, 0, 7]){
+    lctx.beginPath(); lctx.moveTo(0, 77);
+    lctx.quadraticCurveTo(dx * 0.6, 86, dx, 96); lctx.stroke();
+  }
+  lctx.restore();
+}
+
+function drawParts(t, b){
+  const lagBase = clamp(-omega * 55, -34, 34); // bụi trời trễ theo quán tính
+  lctx.globalCompositeOperation = 'lighter';
+  const cs = Math.cos(TILT), sn = Math.sin(TILT);
+  for(const p of parts){
+    const a = p.a0 + t * p.sp;
+    const x = Math.cos(a) * p.r, y = Math.sin(a) * p.r * 0.62;
+    const xr = x * cs - y * sn, yr = x * sn + y * cs;
+    const tw = 0.45 + 0.55 * Math.sin(t * p.tw + p.ph);
+    lctx.globalAlpha = clamp(b * (0.30 + 0.70 * tw), 0, 1);
+    lctx.fillStyle = p.col;
+    const px = xr + lagBase * (p.r / R);
+    lctx.beginPath(); lctx.arc(px, yr, p.sz, 0, TAU); lctx.fill();
+    if(p.sz > 1.7){
+      lctx.globalAlpha = clamp(b * 0.16 * tw, 0, 1);
+      lctx.beginPath(); lctx.arc(px, yr, p.sz * 2.8, 0, TAU); lctx.fill();
+    }
+  }
+  lctx.globalAlpha = 1;
+  lctx.globalCompositeOperation = 'source-over';
+}
+
+function drawLantern(t, Bv){
+  lctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  lctx.clearRect(0, 0, lw, lh);
+  lctx.translate(lw/2, padTop + R);
+  const b = clamp(Bv, 0, 1), bx = clamp(Bv, 0, 1.45);
+
+  // hào quang tỏa quanh viền
+  lctx.globalCompositeOperation = 'lighter';
+  lctx.strokeWidth = 0;
+  glowStroke(rimPath, 26, 0.035 * bx);
+  glowStroke(rimPath, 14, 0.055 * bx);
+  glowStroke(rimPath,  7, 0.09  * bx);
+  lctx.globalCompositeOperation = 'source-over';
+
+  drawTail(t, b);
+
+  /* ---- mặt đèn: galaxy bên trong ---- */
+  lctx.save();
+  lctx.clip(facePath);
+  lctx.fillStyle = '#08060e';
+  lctx.fillRect(-R, -R, 2*R, 2*R);
+
+  // tinh vân xoáy chậm
+  lctx.save();
+  lctx.rotate(nebA);
+  lctx.globalAlpha = clamp(0.9 * (0.10 + 0.90 * Math.pow(b, 1.15)), 0, 1);
+  lctx.drawImage(neb, -nebSize/2, -nebSize/2, nebSize, nebSize);
+  lctx.restore();
+
+  drawParts(t, b);
+
+  // bóng đèn ở tâm
+  lctx.globalCompositeOperation = 'lighter';
+  const cr = R * (0.55 + 0.22 * b);
+  const g = lctx.createRadialGradient(0, 0, 0, 0, 0, cr);
+  g.addColorStop(0,    `rgba(255,250,238,${clamp(0.95*b + 0.06, 0, 1)})`);
+  g.addColorStop(0.22, `rgba(255,222,150,${clamp(0.5*b, 0, 1)})`);
+  g.addColorStop(0.55, `rgba(255,180,105,${clamp(0.16*b, 0, 1)})`);
+  g.addColorStop(1,    'rgba(255,170,90,0)');
+  lctx.fillStyle = g;
+  lctx.beginPath(); lctx.arc(0, 0, cr, 0, TAU); lctx.fill();
+
+  // vignette giấy sẫm ở mép
+  lctx.globalCompositeOperation = 'source-over';
+  const vg = lctx.createRadialGradient(0, 0, R * 0.45, 0, 0, R * 0.96);
+  vg.addColorStop(0, 'rgba(4,3,8,0)');
+  vg.addColorStop(1, 'rgba(4,3,8,0.5)');
+  lctx.fillStyle = vg;
+  lctx.fillRect(-R, -R, 2*R, 2*R);
+
+  // mép giấy bắt sáng
+  lctx.globalCompositeOperation = 'lighter';
+  lctx.lineWidth = 2;
+  lctx.strokeStyle = `rgba(255,215,150,${clamp(0.14 + 0.4*b, 0, 1)})`;
+  lctx.stroke(facePath);
+  lctx.restore();
+
+  /* ---- khung đèn ---- */
+  lctx.globalCompositeOperation = 'source-over';
+  lctx.strokeStyle = '#241a12'; lctx.lineWidth = 9;  lctx.stroke(rimPath);
+  lctx.strokeStyle = `rgba(255,206,142,${clamp(0.12 + 0.32*b, 0, 1)})`;
+  lctx.lineWidth = 1.2; lctx.stroke(rimPath);
+
+  // nan hoa từ tâm ra 8 đỉnh
+  for(const ang of spokes){
+    const x = Math.cos(ang) * R * 0.985, y = Math.sin(ang) * R * 0.985;
+    lctx.strokeStyle = '#241a12'; lctx.lineWidth = 3.2;
+    lctx.beginPath(); lctx.moveTo(0, 0); lctx.lineTo(x, y); lctx.stroke();
+    lctx.strokeStyle = `rgba(255,206,142,${clamp(0.10 + 0.28*b, 0, 1)})`;
+    lctx.lineWidth = 1;
+    lctx.beginPath(); lctx.moveTo(0, 0); lctx.lineTo(x, y); lctx.stroke();
+  }
+  // hai vòng nan ngang
+  for(const [rr, w] of [[0.45, 2.6], [0.74, 1.8]]){
+    lctx.strokeStyle = '#241a12'; lctx.lineWidth = w;
+    lctx.beginPath(); lctx.arc(0, 0, R * rr, 0, TAU); lctx.stroke();
+    lctx.strokeStyle = `rgba(255,206,142,${clamp(0.08 + 0.24*b, 0, 1)})`;
+    lctx.lineWidth = 0.8;
+    lctx.beginPath(); lctx.arc(0, 0, R * rr, 0, TAU); lctx.stroke();
+  }
+  // bu-lông tâm
+  lctx.fillStyle = '#241a12';
+  lctx.beginPath(); lctx.arc(0, 0, 5.5, 0, TAU); lctx.fill();
+  lctx.fillStyle = `rgba(255,235,190,${clamp(0.15 + 0.6*b, 0, 1)})`;
+  lctx.beginPath(); lctx.arc(0, 0, 2.2, 0, TAU); lctx.fill();
+}
+
+/* ================= Vẽ bầu trời ================= */
+function skyGlow(x, y, r, rgb, a){
+  if(a <= 0.003) return;
+  const g = sctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, `rgba(${rgb},${a})`);
+  g.addColorStop(1, `rgba(${rgb},0)`);
+  sctx.fillStyle = g;
+  sctx.fillRect(x - r, y - r, r * 2, r * 2);
+}
+
+function drawSky(t, dt){
+  sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  sctx.globalCompositeOperation = 'source-over';
+  sctx.globalAlpha = 1;
+  sctx.fillStyle = '#050409';
+  sctx.fillRect(0, 0, W, H);
+
+  if(bgNeb){
+    sctx.globalAlpha = 0.85 + 0.15 * Math.sin(t * 0.05);
+    sctx.drawImage(bgNeb, 0, 0);
+    sctx.globalAlpha = 1;
+  }
+
+  // vị trí hiện tại của đèn
+  const d = cordLen + padTop + R;
+  const lx = W/2 - Math.sin(theta) * d;
+  const ly = Math.cos(theta) * d;
+  const bx = clamp(B, 0, 1.3);
+
+  // ánh đèn rọi lên trời sao
+  sctx.globalCompositeOperation = 'lighter';
+  skyGlow(lx, ly, Math.max(W, H) * 0.75, '255,190,130', 0.045 * bx);
+  skyGlow(lx, ly, R * 2.8, '255,186,120', 0.10 * bx);
+  skyGlow(lx, ly, R * 1.2, '255,205,140', 0.16 * bx);
+
+  // sao trời nhấp nháy, sáng bừng gần đèn
+  const boostR = R * 3.4;
+  for(const s of stars){
+    const aBase = s.a * (0.45 + 0.55 * Math.sin(t * s.tw + s.ph));
+    const dist = Math.hypot(s.x - lx, s.y - ly);
+    const al = clamp(aBase * (1 + bx * 0.9 * Math.max(0, 1 - dist / boostR)), 0, 1);
+    sctx.fillStyle = `rgba(${s.col},${al})`;
+    sctx.beginPath(); sctx.arc(s.x, s.y, s.r, 0, TAU); sctx.fill();
+    if(s.r > 1.25 && al > 0.55){
+      const g = sctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 5);
+      g.addColorStop(0, `rgba(${s.col},${al * 0.22})`);
+      g.addColorStop(1, `rgba(${s.col},0)`);
+      sctx.fillStyle = g;
+      sctx.fillRect(s.x - s.r*5, s.y - s.r*5, s.r*10, s.r*10);
+    }
+  }
+
+  // sao băng
+  shotTimer -= dt;
+  if(!shot && shotTimer <= 0){
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    const a = rand(0.35, 0.6);
+    shot = {
+      x: rand(W*0.1, W*0.9), y: rand(0, H*0.25),
+      vx: dir * Math.cos(a) * rand(700, 1100),
+      vy: Math.sin(a) * rand(500, 800),
+      life: 0, max: rand(0.6, 1)
+    };
+    shotTimer = rand(6, 14);
+  }
+  if(shot){
+    shot.life += dt;
+    shot.x += shot.vx * dt; shot.y += shot.vy * dt;
+    if(shot.life > shot.max) shot = null;
+    else{
+      const al = Math.sin(Math.min(1, shot.life / shot.max) * Math.PI) * 0.9;
+      const x2 = shot.x - shot.vx * 0.085, y2 = shot.y - shot.vy * 0.085;
+      const g = sctx.createLinearGradient(shot.x, shot.y, x2, y2);
+      g.addColorStop(0, `rgba(255,244,224,${al})`);
+      g.addColorStop(1, 'rgba(255,244,224,0)');
+      sctx.strokeStyle = g; sctx.lineWidth = 1.5;
+      sctx.beginPath(); sctx.moveTo(shot.x, shot.y); sctx.lineTo(x2, y2); sctx.stroke();
+      sctx.fillStyle = `rgba(255,250,240,${al})`;
+      sctx.beginPath(); sctx.arc(shot.x, shot.y, 1.6, 0, TAU); sctx.fill();
+    }
+  }
+
+  // sóng sáng lan tỏa khi chạm đèn
+  for(let i = rings.length - 1; i >= 0; i--){
+    const r = rings[i];
+    r.r *= 1 + 1.5 * dt;
+    r.a *= Math.exp(-2.0 * dt);
+    if(r.a < 0.012){ rings.splice(i, 1); continue; }
+    sctx.strokeStyle = `rgba(255,216,160,${r.a})`;
+    sctx.lineWidth = 1.4;
+    sctx.beginPath(); sctx.arc(r.x, r.y, r.r, 0, TAU); sctx.stroke();
+  }
+
+  // hạt sao văng ra
+  for(let i = sparks.length - 1; i >= 0; i--){
+    const s = sparks[i];
+    s.life -= dt;
+    if(s.life <= 0){ sparks.splice(i, 1); continue; }
+    s.vx *= Math.exp(-0.9 * dt); s.vy = s.vy * Math.exp(-0.9 * dt) - 18 * dt;
+    s.x += s.vx * dt; s.y += s.vy * dt;
+    const al = clamp(s.life / s.max, 0, 1) * 0.9;
+    sctx.fillStyle = `rgba(${s.col},${al})`;
+    sctx.beginPath(); sctx.arc(s.x, s.y, s.s, 0, TAU); sctx.fill();
+  }
+  sctx.globalCompositeOperation = 'source-over';
+}
+
+/* ================= Vật lý con lắc & độ sáng ================= */
+function physics(t, dt){
+  if(!dragging){
+    const L = cordLen + padTop + R;
+    omega += (-(2400 / L) * Math.sin(theta) - 0.32 * omega) * dt;
+    omega += (Math.sin(t * 0.33) * 0.10 + Math.sin(t * 0.13 + 1.7) * 0.06) * dt; // gió rất khẽ
+    theta += omega * dt;
+  }
+  theta = clamp(theta, -1.35, 1.35);
+  tailSway += (clamp(-omega * 0.32, -0.36, 0.36) - tailSway) * Math.min(1, dt * 5.5);
+  pulse *= Math.exp(-1.9 * dt);
+  nebA += dt * 0.05;
+}
+
+function brightness(t, dt){
+  jitT -= dt;
+  if(jitT <= 0){ jit = rand(-1, 1); jitT = 0.08; } // đèn thật luôn run rẩy chút
+  let bb;
+  if(mode === 'off')         bb = 0.045;
+  else if(mode === 'steady') bb = 0.9 + jit * 0.025;
+  else if(mode === 'breath') bb = 0.52 + 0.46 * Math.sin(t * 0.85 * speed) + jit * 0.02;
+  else{ // chớp kiểu hội đèn
+    flick.t -= dt;
+    if(flick.t <= 0){
+      flick.t = rand(0.045, 0.20) / speed;
+      flick.target = Math.random() < 0.26 ? rand(0.05, 0.22) : rand(0.6, 1);
+    }
+    bb = B + (flick.target - B) * Math.min(1, dt * 16);
+  }
+  B = clamp(bb, 0.02, 1) + pulse * 0.7;
+}
+
+/* ================= Vòng lặp chính ================= */
+function frame(now){
+  const t = now / 1000;
+  const dt = Math.min(0.033, (now - last) / 1000);
+  last = now;
+
+  physics(t, dt);
+  brightness(t, dt);
+  drawSky(t, dt);
+  drawLantern(t, B);
+
+  pend.style.transform = `translateX(-50%) rotate(${theta}rad)`;
+  const ry   = clamp(-omega * 22, -13, 13) + Math.sin(t * 0.4) * 3;
+  const tilt = clamp(omega * 0.045, -0.05, 0.05);
+  lantern.style.transform = `perspective(900px) rotateY(${ry}deg) rotate(${tilt}rad)`;
+  cord.style.background = `rgba(255,222,175,${0.05 + 0.12 * clamp(B, 0, 1)})`;
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ================= Kéo / thả / chạm đèn ================= */
+function pAngle(e){
+  const dx = e.clientX - W/2;
+  const dy = Math.max(e.clientY, 60); // điểm treo ở y = 0
+  return -Math.atan2(dx, dy);
+}
+
+let downT = 0, moved = 0, lastCX = 0, lastCY = 0, lastMoveT = 0;
+
+lantern.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  lantern.setPointerCapture(e.pointerId);
+  dragging = true;
+  lantern.classList.add('drag');
+  downT = performance.now(); lastMoveT = downT;
+  lastCX = e.clientX; lastCY = e.clientY; moved = 0;
+  omega *= 0.2;
+  dismissHint();
+});
+lantern.addEventListener('pointermove', e => {
+  if(!dragging) return;
+  const now = performance.now();
+  const dtm = Math.max(0.008, (now - lastMoveT) / 1000);
+  moved += Math.hypot(e.clientX - lastCX, e.clientY - lastCY);
+  lastCX = e.clientX; lastCY = e.clientY;
+  const na = clamp(pAngle(e), -1.15, 1.15);
+  omega = clamp((na - theta) / dtm, -5, 5);
+  theta = na;
+  lastMoveT = now;
+});
+function endDrag(e){
+  if(!dragging) return;
+  dragging = false;
+  lantern.classList.remove('drag');
+  if(performance.now() - downT < 280 && moved < 7) firePulse();
+}
+lantern.addEventListener('pointerup', endDrag);
+lantern.addEventListener('pointercancel', endDrag);
+
+/* Chạm một nhịp: đèn bừng, sóng sáng lan, hạt sao văng */
+function firePulse(){
+  pulse = Math.min(pulse + 1.0, 1.5);
+  const d = cordLen + padTop + R;
+  const cx = W/2 - Math.sin(theta) * d;
+  const cy = Math.cos(theta) * d;
+  rings.push({ x: cx, y: cy, r: R * 0.55, a: 0.5 });
+  for(let i = 0; i < 16; i++){
+    const a = rand(0, TAU), sp = rand(70, 300);
+    sparks.push({
+      x: cx + Math.cos(a) * rand(10, R * 0.8),
+      y: cy + Math.sin(a) * rand(10, R * 0.6),
+      vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 40,
+      life: rand(0.7, 1.6), max: 1.6,
+      col: pick(['255,240,214', '255,214,150', '176,232,220']),
+      s: rand(0.8, 2)
+    });
+  }
+  chime();
+}
+
+/* ================= Âm thanh khẽ khi chạm đèn ================= */
+function chime(){
+  if(!soundOn) return;
+  try{
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if(actx.state === 'suspended') actx.resume();
+    const t0 = actx.currentTime;
+    const mk = (f0, f1, g0, dur) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(f0, t0);
+      o.frequency.exponentialRampToValueAtTime(f1, t0 + 0.10);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(g0, t0 + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g).connect(actx.destination);
+      o.start(t0); o.stop(t0 + dur + 0.05);
+    };
+    mk(560, 900, 0.055, 0.85);
+    mk(1120, 1500, 0.016, 0.5);
+  }catch(err){ /* bỏ qua nếu trình duyệt chặn âm thanh */ }
+}
+
+/* ================= Bảng điều khiển ================= */
+document.querySelectorAll('.modes button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    mode = btn.dataset.m;
+    document.querySelectorAll('.modes button').forEach(b => b.classList.toggle('on', b === btn));
+  });
+});
+document.getElementById('tempo').addEventListener('input', e => {
+  speed = parseFloat(e.target.value);
+  document.getElementById('tempoVal').textContent = speed.toFixed(2) + '×';
+});
+const sndBtn = document.getElementById('snd');
+sndBtn.addEventListener('click', () => {
+  soundOn = !soundOn;
+  sndBtn.textContent = soundOn ? 'ÂM · MỞ' : 'ÂM · TẮT';
+  sndBtn.classList.toggle('on', soundOn);
+});
+
+/* ================= Gợi ý mở màn ================= */
+let hintShown = false;
+setTimeout(() => { hint.classList.add('show'); hintShown = true; }, 900);
+setTimeout(() => hint.classList.remove('show'), 9000);
+let hintTO = null;
+function dismissHint(){
+  if(!hintShown) return;
+  hintTO = hintTO || setTimeout(() => hint.classList.remove('show'), 2200);
+}
+})();
+</script>
 </body>
 </html>

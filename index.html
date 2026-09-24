@@ -2,96 +2,95 @@
 <html lang="vi">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>Lồng Đèn Sao — Galaxy</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Lồng Đèn Sao — NGỌC LINH</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Be+Vietnam+Pro:wght@200;300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Be+Vietnam+Pro:wght@200;300;400&display=swap" rel="stylesheet">
 <style>
   *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-  html,body{ margin:0; height:100%; overflow:hidden; background:#050409; }
+  html,body{ margin:0; height:100%; overflow:hidden; background:#050409;
+    touch-action:none; overscroll-behavior:none; user-select:none; }
   body{ font-family:'Be Vietnam Pro', sans-serif; color:#e9dfc8; }
 
-  /* ---- Bầu trời phía sau ---- */
   #sky{ position:fixed; inset:0; display:block; z-index:0; }
 
-  /* ---- Con lắc treo đèn ---- */
   #pendulum{
-    position:fixed; left:50%; top:0; z-index:2;
+    position:fixed; left:50%; top:0; z-index:2; width:max-content;
     display:flex; flex-direction:column; align-items:center;
-    width:max-content; transform-origin:50% 0; will-change:transform;
-    pointer-events:none;
+    transform-origin:50% 0; will-change:transform; pointer-events:none;
   }
-  #cord{ width:2px; height:170px; background:rgba(255,222,175,.10); pointer-events:none; }
+  #cord{ width:2px; height:170px; background:rgba(255,222,175,.10); }
   #lantern{
-    display:block; pointer-events:auto; cursor:grab; touch-action:none;
-    will-change:transform;
+    display:block; pointer-events:auto; cursor:grab;
+    touch-action:none; will-change:transform;
   }
-  #lantern.drag{ cursor:grabbing; }
+  #lantern:active{ cursor:grabbing; }
 
-  /* ---- Tiêu đề ---- */
-  header{ position:fixed; left:46px; top:42px; z-index:5; pointer-events:none; }
-  header .rule{ width:36px; height:1px; background:rgba(242,214,160,.55); margin-bottom:16px; }
+  header{ position:fixed; left:44px; top:40px; z-index:5; pointer-events:none; }
+  header .rule{ width:36px; height:1px; background:rgba(242,214,160,.55); margin-bottom:14px; }
   header h1{
-    margin:0; font:500 clamp(30px,4vw,44px) 'Cormorant Garamond', serif;
-    color:#f1e7cf; letter-spacing:.05em; line-height:1;
+    margin:0; font:500 clamp(26px,3.4vw,42px) 'Cormorant Garamond', serif;
+    color:#f1e7cf; letter-spacing:.06em; line-height:1;
   }
   header p{
-    margin:12px 0 0 2px; font:300 10px 'Be Vietnam Pro';
-    letter-spacing:.42em; color:rgba(220,206,176,.48);
+    margin:10px 0 0 2px; font:300 9px 'Be Vietnam Pro';
+    letter-spacing:.4em; color:rgba(220,206,176,.45);
   }
 
-  /* ---- Gợi ý ---- */
   #hint{
-    position:fixed; left:50%; bottom:98px; transform:translateX(-50%);
+    position:fixed; left:50%; bottom:104px; transform:translateX(-50%);
     z-index:5; pointer-events:none; text-align:center;
-    font:italic 400 15px 'Cormorant Garamond', serif;
-    color:rgba(235,224,200,.58); letter-spacing:.04em;
-    opacity:0; transition:opacity 1.4s ease;
+    width:max-content; max-width:88vw;
+    font:italic 400 14px 'Cormorant Garamond', serif;
+    color:rgba(235,224,200,.55); letter-spacing:.04em;
+    opacity:0; transition:opacity 1.2s ease;
   }
   #hint.show{ opacity:1; }
 
-  /* ---- Bảng điều khiển ---- */
   #panel{
-    position:fixed; left:50%; bottom:26px; transform:translateX(-50%);
-    z-index:6; display:flex; align-items:center; flex-wrap:wrap;
-    justify-content:center; gap:20px; row-gap:10px; max-width:94vw;
-    padding:12px 22px; border:1px solid rgba(236,227,205,.13);
-    background:rgba(9,8,13,.55); backdrop-filter:blur(10px);
-    border-radius:2px;
+    position:fixed; left:50%; bottom:calc(20px + env(safe-area-inset-bottom,0px));
+    transform:translateX(-50%); z-index:6;
+    display:flex; align-items:center; justify-content:center; flex-wrap:wrap;
+    gap:8px 18px; max-width:min(94vw,560px);
+    padding:11px 20px; border:1px solid rgba(236,227,205,.13);
+    background:rgba(9,8,13,.55); backdrop-filter:blur(10px); border-radius:2px;
   }
   #panel .sep{ width:1px; height:16px; background:rgba(236,227,205,.14); }
   #panel button{
-    background:none; border:none; padding:6px 2px; cursor:pointer;
-    font:300 11px 'Be Vietnam Pro'; letter-spacing:.22em;
+    background:none; border:none; padding:5px 2px; cursor:pointer;
+    font:300 11px 'Be Vietnam Pro', sans-serif; letter-spacing:.2em;
     color:rgba(232,222,200,.45); position:relative; transition:color .3s;
   }
   #panel button:hover{ color:#e8dcc0; }
   #panel button.on{ color:#f2e4c4; }
   #panel button.on::after{
-    content:''; position:absolute; left:8%; right:8%; bottom:0;
+    content:''; position:absolute; left:10%; right:10%; bottom:-1px;
     height:1px; background:rgba(242,214,160,.7);
   }
-  .modes{ display:flex; gap:16px; }
-  .tempo{ display:flex; align-items:center; gap:10px; }
-  .tempo span{
-    font:300 10px 'Be Vietnam Pro'; letter-spacing:.24em;
-    color:rgba(232,222,200,.5);
-  }
-  #tempoVal{
-    min-width:44px; color:rgba(242,224,190,.78);
-    letter-spacing:.08em; font-variant-numeric:tabular-nums;
-  }
-  input[type=range]{ -webkit-appearance:none; appearance:none; width:110px; height:18px; background:transparent; cursor:pointer; }
+  .modes{ display:flex; gap:14px; }
+  .tempo{ display:flex; align-items:center; gap:9px; }
+  .tempo em{ font:300 10px 'Be Vietnam Pro'; font-style:normal; letter-spacing:.22em; color:rgba(232,222,200,.5); }
+  #tempoVal{ min-width:44px; color:rgba(242,224,190,.78); font-size:10px;
+    letter-spacing:.06em; font-variant-numeric:tabular-nums; }
+  input[type=range]{ -webkit-appearance:none; appearance:none; width:104px; height:18px; background:transparent; cursor:pointer; }
   input[type=range]::-webkit-slider-runnable-track{ height:1px; background:rgba(232,222,200,.28); }
   input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:9px; height:9px; border-radius:50%; background:#e8c88d; margin-top:-4px; }
   input[type=range]::-moz-range-track{ height:1px; background:rgba(232,222,200,.28); }
   input[type=range]::-moz-range-thumb{ width:9px; height:9px; border:0; border-radius:50%; background:#e8c88d; }
 
-  @media (max-width:640px){
-    header{ left:24px; top:24px; }
-    #panel{ gap:14px; padding:10px 14px; bottom:18px; }
-    #hint{ bottom:120px; width:88vw; }
+  @media (max-width:719px){
+    header{ left:22px; top:20px; }
+    header h1{ font-size:26px; }
+    header p{ letter-spacing:.32em; font-size:8px; }
+    #panel{ gap:6px 14px; padding:10px 14px; }
+    #panel .sep{ display:none; }
+    .modes{ gap:12px; }
+    input[type=range]{ width:88px; }
+    #hint{ bottom:138px; font-size:13px; }
+  }
+  @media (max-height:600px){
+    #hint{ bottom:150px; font-size:12px; }
   }
 </style>
 </head>
@@ -107,10 +106,10 @@
 <header>
   <div class="rule"></div>
   <h1>Lồng Đèn Sao</h1>
-  <p>MỘT GÓC TRỜI GALAXY GÓI TRONG ĐÈN GIẤY</p>
+  <p>NGỌC LINH — DÒNG BỤI SAO GIỮA GÓC TRỜI GALAXY</p>
 </header>
 
-<div id="hint">Kéo rồi buông để chiếc đèn đung đưa — chạm một nhịp để nó bừng sáng.</div>
+<div id="hint">Chạm một nhịp vào đèn để bừng sáng — chạm vào NGỌC LINH để tan thành bụi sao.</div>
 
 <div id="panel">
   <div class="modes">
@@ -121,7 +120,7 @@
   </div>
   <span class="sep"></span>
   <label class="tempo">
-    <span>NHỊP</span>
+    <em>NHỊP</em>
     <input id="tempo" type="range" min="0.25" max="2.4" step="0.05" value="1">
     <span id="tempoVal">1.00×</span>
   </label>
@@ -135,131 +134,248 @@
 const TAU = Math.PI * 2;
 const clamp = (v,a,b) => v < a ? a : v > b ? b : v;
 const rand  = (a,b) => a + Math.random() * (b - a);
-const pick  = arr => arr[(Math.random() * arr.length) | 0];
 const gauss = () => (Math.random()+Math.random()+Math.random()-1.5)/1.5;
 
-/* ================= Các phần tử & trạng thái ================= */
-const sky     = document.getElementById('sky');
-const sctx    = sky.getContext('2d');
-const lantern = document.getElementById('lantern');
-const lctx    = lantern.getContext('2d');
-const pend    = document.getElementById('pendulum');
-const cord    = document.getElementById('cord');
-const hint    = document.getElementById('hint');
+/* ================= Phần tử ================= */
+const sky  = document.getElementById('sky'),  sctx = sky.getContext('2d');
+const lcv  = document.getElementById('lantern'), lctx = lcv.getContext('2d');
+const pend = document.getElementById('pendulum');
+const cordEl = document.getElementById('cord');
+const hintEl = document.getElementById('hint');
 
-let W, H, dpr;
-let R = 220;                       // bán kính ngôi sao
-const padTop = 44, tailH = 100;    // đệm trên & chiều cao đuôi đèn
-let lw, lh, cordLen = 170;
+/* ================= Trạng thái ================= */
+let W=0, H=0, dpr=1, mobile=false;
+let R=200, padTop=28, tailH=100, lw=0, lh=0, cordLen=170;
 
-let rimPath, facePath, spokes;     // hình học khung đèn
-let stars = [], parts = [], sparks = [], rings = [];
-let bgNeb = null, neb = null, nebSize = 0, nebA = 0;
+let rimPath=null, facePath=null, spokes=[];
+let neb=null, nebSize=0, nebRot=0;
+let parts=[];
 
-let theta = 0.14, omega = -0.45;   // góc & vận tốc con lắc
-let dragging = false, tailSway = 0;
-let pulse = 0;                     // xung sáng khi chạm đèn
-let mode = 'breath', speed = 1, B = 0.6;
-let flick = { t: 0, target: 0.9 };
-let jit = 0, jitT = 0;
-let soundOn = true, actx = null;
-let last = performance.now();
-let shot = null, shotTimer = 5;
+let bgNeb=null;
+let stars=[], sparks=[], rings=[], shots=[];
+let shotTimer=2.5;
 
-const PAL = ['#fff4e2', '#ffe2ab', '#9fe4d4', '#f2b498'];
-const TILT = -0.26;                // độ nghiêng đĩa thiên hà
+let theta=0.15, omega=0.55;
+let dragging=false, downT=0, moved=0, lastPX=0, lastPY=0;
+let tailSway=0;
 
-/* ================= Hình học ngôi sao ================= */
-function starPath(Ro, Ri, n = 8){
-  const p = new Path2D();
-  for(let i = 0; i < n * 2; i++){
-    const ang = -Math.PI/2 + i * Math.PI / n;
-    const rad = (i % 2 === 0) ? Ro : Ri;
-    const x = Math.cos(ang) * rad, y = Math.sin(ang) * rad;
-    i ? p.lineTo(x, y) : p.moveTo(x, y);
+let mode='breath', speed=1;
+let B=0.55, pulse=0, flickT=0, flickTgt=0.9, jit=0, jitT=0;
+let glyphPulse=0;
+
+let soundOn=true, actx=null;
+const mouse={ x:-9e3, y:-9e3 };
+
+let words=[];
+let gemMid=null, gemSideDx=0;      // viên ngọc giữa & hai viên hộp đầu
+let tc=0, last=performance.now();
+
+const PAL=['#fff4e2','#ffe2ab','#9fe4d4','#f2b498'];
+const TILT=-0.26;
+/* NGỌC — sắc ngọc bích xanh mát */
+const PAL_N={ base:'238,250,244', acc:['128,232,198','88,204,170'] };
+/* LINH — sắc bạc trăng lạnh */
+const PAL_L={ base:'240,244,252', acc:['186,216,255','168,232,220'] };
+
+const restDist  = () => cordLen + padTop + R;
+const lanternPos = () => ({ x: W/2 - Math.sin(theta)*restDist(), y: Math.cos(theta)*restDist() });
+
+/* ================= Đo & dựng chữ bằng bụi sao ================= */
+function wordMetrics(word, fs){
+  if(!wordMetrics.c) wordMetrics.c = document.createElement('canvas').getContext('2d');
+  const m = wordMetrics.c;
+  m.font = `600 ${fs}px "Cormorant Garamond", Georgia, serif`;
+  const chars = [...word];
+  const widths = chars.map(c => m.measureText(c).width);
+  const gap = fs * 0.09;
+  const total = widths.reduce((a,b)=>a+b,0) + gap*(chars.length-1);
+  return { chars, widths, gap, total };
+}
+
+function makeWord(word, fs, cx, cy, target, pal, prev, firstDelay){
+  const met = wordMetrics(word, fs);
+  const cw = Math.max(1, Math.ceil(met.total + fs*0.3));
+  const ch = Math.max(1, Math.ceil(fs*1.45));
+  const off = document.createElement('canvas');
+  off.width = cw; off.height = ch;
+  const o = off.getContext('2d');
+  o.font = `600 ${fs}px "Cormorant Garamond", Georgia, serif`;
+  o.textBaseline = 'alphabetic'; o.fillStyle = '#fff';
+  let x = fs*0.15;
+  met.chars.forEach((c,i)=>{ o.fillText(c, x, ch*0.74); x += met.widths[i] + met.gap; });
+  const data = o.getImageData(0,0,cw,ch).data;
+
+  const step = Math.max(2, Math.round(fs/44));
+  const pts = [];
+  for(let py=0; py<ch; py+=step)
+    for(let px=0; px<cw; px+=step)
+      if(data[(py*cw+px)*4+3] > 120) pts.push(px, py);
+
+  const nPts = pts.length/2;
+  const keep = nPts ? Math.min(1, target/nPts) : 0;
+
+  const revealed = !!prev;
+  const lp = lanternPos();
+  const sys = { word, fs, cx, cy,
+    halfW: met.total/2 + fs*0.12, halfH: fs*0.72,
+    t0: tc, ps: [] };
+
+  for(let i=0; i<nPts; i++){
+    if(keep < 1 && Math.random() > keep) continue;
+    const hx = pts[i*2] - cw/2, hy = pts[i*2+1] - ch/2;
+    const big = Math.random() < 0.06;
+    const r = Math.random();
+    sys.ps.push({
+      hx, hy,
+      x: revealed ? cx + hx + gauss()*30 : lp.x + gauss()*R*0.5,
+      y: revealed ? cy + hy + gauss()*30 : lp.y + gauss()*R*0.45,
+      vx:0, vy:0,
+      s: (big ? rand(1.6,2.4) : rand(0.55,1.35)) * (fs/150 + 0.35),
+      big,
+      tw: rand(0.7,3.0), ph: rand(0,TAU),
+      col: r<0.62 ? pal.base : r<0.88 ? pal.acc[0] : pal.acc[1],
+      delay: revealed ? 0 : firstDelay + Math.random()*1.0,
+      born: revealed
+    });
   }
-  p.closePath();
-  return p;
+  return sys;
 }
 
+/* NGỌC LINH — một dòng duy nhất nằm giữa màn hình,
+   viên ngọc lấp lánh ngăn cách hai chữ ngay tại tâm ngang */
+function layoutWords(){
+  const prev = words;
+  const margin = Math.max(14, W*0.04);
+  const avail = W - margin*2;
+  const mN100 = wordMetrics('NGỌC',100).total;
+  const mL100 = wordMetrics('LINH',100).total;
+
+  /* đáy đèn & vùng trống cho chữ */
+  const lanternBottom = restDist() + R + tailH;
+  const top = lanternBottom + (mobile ? 26 : 30);
+  const bottom = H - (mobile ? 180 : 150);
+
+  /* cỡ chữ: vừa bề ngang, vừa khoảng trống dọc */
+  let fs = 100*avail/(mN100 + mL100 + 50);      // 0.5fs dành cho viên ngọc giữa
+  fs = Math.min(fs, (bottom - top)/1.45, mobile ? 96 : 200);
+  fs = clamp(fs, mobile ? 32 : 48, mobile ? 96 : 200);
+
+  const wN = wordMetrics('NGỌC',fs), wL = wordMetrics('LINH',fs);
+  const gapW = fs*0.5;
+  const total = wN.total + gapW + wL.total;
+  const cy = (top + bottom)/2;                   // căn giữa vùng trống → giữa màn hình
+  const cxN = W/2 - total/2 + wN.total/2;
+  const cxL = W/2 + total/2 - wL.total/2;
+
+  const tgt = mobile
+    ? clamp(Math.round(W*H/8000), 320, 700)
+    : clamp(Math.round(W*H/5500), 700, 1500);
+
+  words = [
+    makeWord('NGỌC', fs, cxN, cy, tgt, PAL_N, prev[0], 0.2),
+    makeWord('LINH', fs, cxL, cy, tgt, PAL_L, prev[1], 0.95)
+  ];
+  gemMid    = { x: W/2, y: cy, s: Math.max(5, fs*0.085), ph: rand(0,TAU), fs };
+  gemSideDx = total/2 + fs*0.30;
+}
+
+/* ================= Hình học khung sao ================= */
+function starPath(Ro, Ri){
+  const p = new Path2D();
+  for(let i=0; i<16; i++){
+    const a = -Math.PI/2 + i*Math.PI/8;
+    const rad = i%2 ? Ri : Ro;
+    const x = Math.cos(a)*rad, y = Math.sin(a)*rad;
+    i ? p.lineTo(x,y) : p.moveTo(x,y);
+  }
+  p.closePath(); return p;
+}
 function buildPaths(){
-  rimPath  = starPath(R, R * 0.52);
-  facePath = starPath(R * 0.94, R * 0.52 * 0.94);
+  rimPath  = starPath(R, R*0.52);
+  facePath = starPath(R*0.94, R*0.52*0.94);
   spokes = [];
-  for(let k = 0; k < 8; k++) spokes.push(-Math.PI/2 + k * Math.PI/4);
+  for(let k=0; k<8; k++) spokes.push(-Math.PI/2 + k*Math.PI/4);
 }
 
-/* ================= Tinh vân bên trong đèn (vẽ 1 lần) ================= */
+/* ================= Tinh vân trong lòng đèn (vẽ 1 lần) ================= */
 function buildNebula(){
-  nebSize = Math.ceil(R * 1.95);
+  nebSize = Math.ceil(R*2);
   neb = document.createElement('canvas');
   neb.width = neb.height = nebSize;
   const n = neb.getContext('2d');
   n.translate(nebSize/2, nebSize/2);
   n.globalCompositeOperation = 'lighter';
   const cols = [[62,208,186],[236,146,108],[126,102,172],[255,201,138]];
-
-  // hai nhánh xoáy ốc
-  for(let i = 0; i < 30; i++){
-    const arm = i % 2;
-    const a = i * 0.52 + arm * Math.PI;
-    const rr = (0.06 + i * 0.031) * nebSize * 0.5;
-    const x = Math.cos(a) * rr * 1.12, y = Math.sin(a) * rr * 0.68;
-    const s = nebSize * (0.09 + Math.random() * 0.11);
-    const c = cols[(Math.random() * 4) | 0];
-    const g = n.createRadialGradient(x, y, 0, x, y, s);
-    g.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${0.20 + Math.random()*0.14})`);
+  for(let i=0; i<30; i++){
+    const arm = i%2, a = i*0.52 + arm*Math.PI;
+    const rr = (0.05 + i*0.032) * nebSize * 0.5;
+    const x = Math.cos(a)*rr*1.15, y = Math.sin(a)*rr*0.7;
+    const s = nebSize*(0.08 + Math.random()*0.10);
+    const c = cols[(Math.random()*4)|0];
+    const g = n.createRadialGradient(x,y,0,x,y,s);
+    g.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${0.16+Math.random()*0.12})`);
     g.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
-    n.fillStyle = g;
-    n.beginPath(); n.arc(x, y, s, 0, TAU); n.fill();
+    n.fillStyle = g; n.beginPath(); n.arc(x,y,s,0,TAU); n.fill();
   }
-  // lõi khí sáng
-  const core = n.createRadialGradient(0, 0, 0, 0, 0, nebSize * 0.2);
-  core.addColorStop(0, 'rgba(255,236,200,0.5)');
-  core.addColorStop(1, 'rgba(255,236,200,0)');
-  n.fillStyle = core;
-  n.beginPath(); n.arc(0, 0, nebSize * 0.2, 0, TAU); n.fill();
-  // bụi trời
-  for(let i = 0; i < 420; i++){
-    const r = Math.pow(Math.random(), 0.6) * nebSize * 0.46;
-    const a = rand(0, TAU);
-    const x = Math.cos(a) * r * 1.1, y = Math.sin(a) * r * 0.68;
+  const core = n.createRadialGradient(0,0,0,0,0,nebSize*0.18);
+  core.addColorStop(0,'rgba(255,236,200,0.45)');
+  core.addColorStop(1,'rgba(255,236,200,0)');
+  n.fillStyle = core; n.beginPath(); n.arc(0,0,nebSize*0.18,0,TAU); n.fill();
+  for(let i=0; i<300; i++){
+    const r = Math.pow(Math.random(),0.6)*nebSize*0.44, a = rand(0,TAU);
     n.fillStyle = `rgba(255,240,215,${rand(0.04,0.1)})`;
-    n.beginPath(); n.arc(x, y, 0.7, 0, TAU); n.fill();
+    n.beginPath(); n.arc(Math.cos(a)*r*1.1, Math.sin(a)*r*0.68, 0.7, 0, TAU); n.fill();
   }
 }
 
-/* ================= Dải ngân hà mờ trên nền trời (vẽ 1 lần) ================= */
+/* ================= Bụi galaxy bay quanh bóng đèn ================= */
+function buildParts(){
+  parts = [];
+  const n = mobile ? 140 : 230;
+  for(let i=0; i<n; i++){
+    const rr = Math.pow(Math.random(), 0.7);
+    parts.push({
+      r: R*(0.10 + rr*0.84), a0: rand(0,TAU),
+      sp: 0.45/(0.25 + rr*1.6),
+      sz: Math.random()<0.07 ? rand(1.8,3.0) : rand(0.5,1.6),
+      tw: rand(0.6,3.4), ph: rand(0,TAU),
+      col: PAL[(Math.random()*PAL.length)|0]
+    });
+  }
+}
+
+/* ================= Dải ngân hà nền trời (vẽ 1 lần) ================= */
 function buildBG(){
   bgNeb = document.createElement('canvas');
-  bgNeb.width = W; bgNeb.height = H;
+  bgNeb.width = Math.max(1,W); bgNeb.height = Math.max(1,H);
   const b = bgNeb.getContext('2d');
-  b.fillStyle = '#050409'; b.fillRect(0, 0, W, H);
+  b.fillStyle = '#050409'; b.fillRect(0,0,W,H);
   b.globalCompositeOperation = 'lighter';
   const cols = [[58,190,170],[210,130,100],[110,92,150],[235,220,190]];
-  const x0 = -0.08*W, y0 = 0.92*H, x1 = 1.08*W, y1 = 0.06*H;
+  const x0=-0.08*W, y0=0.95*H, x1=1.08*W, y1=0.05*H;
   const sc = W/1400 + 0.4;
 
-  for(let i = 0; i < 3; i++){ // vài mây lớn rất mờ
-    const u = 0.2 + i * 0.3;
-    const x = x0+(x1-x0)*u, y = y0+(y1-y0)*u + gauss()*H*0.06;
-    const g = b.createRadialGradient(x, y, 0, x, y, H*0.5);
-    g.addColorStop(0, 'rgba(150,130,160,0.028)');
-    g.addColorStop(1, 'rgba(150,130,160,0)');
+  for(let i=0; i<3; i++){
+    const u = 0.2 + i*0.3;
+    const x = x0+(x1-x0)*u + gauss()*W*0.04;
+    const y = y0+(y1-y0)*u + gauss()*H*0.05;
+    const g = b.createRadialGradient(x,y,0,x,y,H*0.5);
+    g.addColorStop(0,'rgba(150,130,160,0.028)');
+    g.addColorStop(1,'rgba(150,130,160,0)');
     b.fillStyle = g; b.fillRect(x-H*0.5, y-H*0.5, H, H);
   }
-  for(let i = 0; i < 120; i++){ // các đốm tinh vân dọc dải
+  for(let i=0; i<(mobile?70:120); i++){
     const u = Math.random();
     const x = x0+(x1-x0)*u + gauss()*W*0.09;
     const y = y0+(y1-y0)*u + gauss()*H*0.075;
     const r = rand(40,170)*sc;
-    const c = pick(cols);
-    const g = b.createRadialGradient(x, y, 0, x, y, r);
+    const c = cols[(Math.random()*4)|0];
+    const g = b.createRadialGradient(x,y,0,x,y,r);
     g.addColorStop(0, `rgba(${c[0]},${c[1]},${c[2]},${rand(0.015,0.05)})`);
     g.addColorStop(1, `rgba(${c[0]},${c[1]},${c[2]},0)`);
     b.fillStyle = g; b.fillRect(x-r, y-r, r*2, r*2);
   }
-  for(let i = 0; i < 500; i++){ // bụi sao tĩnh
+  for(let i=0; i<(mobile?260:500); i++){
     const u = Math.random();
     const x = x0+(x1-x0)*u + gauss()*W*0.08;
     const y = y0+(y1-y0)*u + gauss()*H*0.07;
@@ -268,479 +384,566 @@ function buildBG(){
   }
 }
 
-/* ================= Sao trời twinkle & hạt galaxy ================= */
 function buildStars(){
-  const count = clamp((W*H/3600)|0, 200, 520);
+  const count = clamp(Math.round(W*H/4200), 130, 420);
   stars = [];
-  for(let i = 0; i < count; i++){
+  for(let i=0; i<count; i++){
     const cr = Math.random();
     stars.push({
-      x: rand(0, W), y: rand(0, H),
-      r: 0.4 + Math.pow(Math.random(), 2.2) * 1.3,
-      a: rand(0.25, 1),
-      tw: rand(0.4, 2.4), ph: rand(0, TAU),
-      col: cr < 0.8 ? '255,244,226' : cr < 0.92 ? '159,228,212' : '255,214,150'
+      x: rand(0,W), y: rand(0,H),
+      r: 0.4 + Math.pow(Math.random(),2.2)*1.3,
+      a: rand(0.25,1),
+      tw: rand(0.4,2.4), ph: rand(0,TAU),
+      col: cr<0.8 ? '255,244,226' : cr<0.92 ? '159,228,212' : '255,214,150'
     });
   }
 }
 
-function buildParts(){
-  parts = [];
-  for(let i = 0; i < 230; i++){
-    const rr = Math.pow(Math.random(), 0.7);
-    parts.push({
-      r: R * (0.10 + rr * 0.84),
-      a0: rand(0, TAU),
-      sp: 0.45 / (0.25 + rr * 1.6),
-      sz: Math.random() < 0.07 ? rand(1.8, 3.0) : rand(0.5, 1.6),
-      tw: rand(0.6, 3.4), ph: rand(0, TAU),
-      col: pick(PAL)
-    });
-  }
-}
-
-/* ================= Kích thước & dựng lại toàn bộ ================= */
-function resize(){
+/* ================= Kích thước & responsive ================= */
+function layout(){
   W = innerWidth; H = innerHeight;
   dpr = Math.min(devicePixelRatio || 1, 2);
-  sky.width = W * dpr; sky.height = H * dpr;
-  sky.style.width = W + 'px'; sky.style.height = H + 'px';
+  sky.width = Math.round(W*dpr); sky.height = Math.round(H*dpr);
+  sky.style.width = W+'px'; sky.style.height = H+'px';
+  mobile = W < 720;
 
-  R = clamp(Math.min(W * 0.30, H * 0.235), 130, 300);
-  const fixed = padTop + R * 2 + tailH + 70;
-  if(fixed > H * 0.985) R = clamp((H * 0.985 - padTop - tailH - 70) / 2, 110, 320);
-  cordLen = clamp(H * 0.985 - (padTop + R * 2 + tailH), 70, 300);
+  if(mobile){
+    R = clamp(Math.min(W*0.24, H*0.17), 84, 170);
+    padTop = 24; tailH = Math.round(R*0.45);
+    cordLen = clamp(H*0.20 - (padTop+R), 40, 150);
+  }else{
+    /* đèn nhích lên & thu gọn để nhường sân khấu giữa màn hình cho chữ */
+    R = clamp(Math.min(W*0.185, H*0.20), 120, 210);
+    padTop = 28; tailH = Math.round(R*0.45);
+    cordLen = clamp(H*0.22 - (padTop+R), 46, 220);
+  }
+  lw = Math.ceil(R*2 + 90); lh = Math.ceil(padTop + R*2 + tailH);
+  lcv.width = Math.round(lw*dpr); lcv.height = Math.round(lh*dpr);
+  lcv.style.width = lw+'px'; lcv.style.height = lh+'px';
+  cordEl.style.height = cordLen+'px';
 
-  lw = R * 2 + 88;
-  lh = R * 2 + padTop + tailH + 8;
-  lantern.width = lw * dpr; lantern.height = lh * dpr;
-  lantern.style.width = lw + 'px'; lantern.style.height = lh + 'px';
-  cord.style.height = cordLen + 'px';
-
-  buildPaths(); buildNebula(); buildBG(); buildStars(); buildParts();
+  buildPaths(); buildNebula(); buildParts(); buildBG(); buildStars(); layoutWords();
 }
-addEventListener('resize', resize);
-resize();
+
+/* ================= Độ sáng bóng đèn ================= */
+function updateBrightness(t, dt){
+  jitT -= dt;
+  if(jitT <= 0){ jit = rand(-1,1); jitT = rand(0.06,0.13); } // đèn thật luôn run rẩy
+  let raw;
+  if(mode === 'off')         raw = 0.035;
+  else if(mode === 'steady') raw = 0.92 + jit*0.02;
+  else if(mode === 'breath') raw = 0.50 + 0.46*Math.sin(t*0.85*speed) + jit*0.02;
+  else{
+    flickT -= dt;
+    if(flickT <= 0){
+      flickT = rand(0.05,0.22)/speed;
+      flickTgt = Math.random() < 0.28 ? rand(0.04,0.2) : rand(0.55,1);
+    }
+    raw = B + (flickTgt - B)*Math.min(1, dt*16);
+  }
+  B = clamp(raw, 0.02, 1.3) + pulse*0.8;
+}
+
+/* ================= Con lắc ================= */
+function physics(t, dt){
+  if(!dragging){
+    const L = restDist();
+    omega += (-(3000/L)*Math.sin(theta) - 0.35*omega)*dt;
+    omega += (Math.sin(t*0.31)*0.10 + Math.sin(t*0.127+1.7)*0.06)*dt; // gió rất khẽ
+    theta += omega*dt;
+  }
+  theta = clamp(theta, -1.25, 1.25);
+  tailSway += (clamp(-omega*0.30, -0.35, 0.35) - tailSway)*Math.min(1, dt*5.5);
+  pulse *= Math.exp(-2.1*dt);
+}
 
 /* ================= Vẽ lồng đèn ================= */
 function glowStroke(p, w, a){
-  if(a <= 0.003) return;
+  if(a <= 0.004) return;
   lctx.lineWidth = w;
   lctx.strokeStyle = `rgba(255,190,115,${clamp(a,0,1)})`;
   lctx.stroke(p);
 }
-
-function diamond(cx, cy, w, h){
+function diamondPath(cx, cy, w, h){
   lctx.beginPath();
-  lctx.moveTo(cx, cy - h/2); lctx.lineTo(cx + w/2, cy);
-  lctx.lineTo(cx, cy + h/2); lctx.lineTo(cx - w/2, cy);
+  lctx.moveTo(cx, cy-h/2); lctx.lineTo(cx+w/2, cy);
+  lctx.lineTo(cx, cy+h/2); lctx.lineTo(cx-w/2, cy);
   lctx.closePath();
 }
-
 function drawTail(t, b){
-  const sw = tailSway + Math.sin(t * 1.4) * 0.02;
+  const u = tailH/100;
   lctx.save();
-  lctx.translate(0, R * 0.99);
-  lctx.rotate(sw);
-  // dây ruột
+  lctx.translate(0, R*0.99);
+  lctx.rotate(tailSway + Math.sin(t*1.4)*0.02);
   lctx.strokeStyle = 'rgba(210,190,160,0.45)'; lctx.lineWidth = 1.5;
-  lctx.beginPath(); lctx.moveTo(0, 0); lctx.lineTo(0, 77); lctx.stroke();
-  // ba chiếc thoi
-  const d1 = [24, 15, 21], d2 = [52, 11, 16], d3 = [71, 8, 12];
-  for(const [cy, w, h] of [d1, d2, d3]){
-    diamond(0, cy, w, h);
-    lctx.fillStyle = `rgba(255,203,138,${0.08 + 0.30 * b})`; lctx.fill();
+  lctx.beginPath(); lctx.moveTo(0,0); lctx.lineTo(0, 77*u); lctx.stroke();
+  for(const [cy,w,h] of [[24,15,21],[52,11,16],[71,8,12]]){
+    diamondPath(0, cy*u, w*u, h*u);
+    lctx.fillStyle = `rgba(255,203,138,${0.08+0.30*b})`; lctx.fill();
     lctx.strokeStyle = '#241a12'; lctx.lineWidth = 2.4; lctx.stroke();
-    lctx.strokeStyle = `rgba(255,206,142,${0.08 + 0.28 * b})`; lctx.lineWidth = 0.8; lctx.stroke();
+    lctx.strokeStyle = `rgba(255,206,142,${0.08+0.28*b})`; lctx.lineWidth = 0.8; lctx.stroke();
   }
-  // tua rủ
-  lctx.strokeStyle = `rgba(255,210,150,${0.12 + 0.3 * b})`; lctx.lineWidth = 1;
-  for(const dx of [-7, 0, 7]){
-    lctx.beginPath(); lctx.moveTo(0, 77);
-    lctx.quadraticCurveTo(dx * 0.6, 86, dx, 96); lctx.stroke();
+  lctx.strokeStyle = `rgba(255,210,150,${0.12+0.3*b})`; lctx.lineWidth = 1;
+  for(const dx of [-7,0,7]){
+    lctx.beginPath(); lctx.moveTo(0, 77*u);
+    lctx.quadraticCurveTo(dx*0.6*u, 86*u, dx*u, 96*u); lctx.stroke();
   }
   lctx.restore();
 }
-
-function drawParts(t, b){
-  const lagBase = clamp(-omega * 55, -34, 34); // bụi trời trễ theo quán tính
+function drawOrbit(t, b){
+  const k = R/220;
+  const lag = clamp(-omega*55, -34, 34)*k; // bụi trời trễ theo quán tính
   lctx.globalCompositeOperation = 'lighter';
   const cs = Math.cos(TILT), sn = Math.sin(TILT);
   for(const p of parts){
-    const a = p.a0 + t * p.sp;
-    const x = Math.cos(a) * p.r, y = Math.sin(a) * p.r * 0.62;
-    const xr = x * cs - y * sn, yr = x * sn + y * cs;
-    const tw = 0.45 + 0.55 * Math.sin(t * p.tw + p.ph);
-    lctx.globalAlpha = clamp(b * (0.30 + 0.70 * tw), 0, 1);
+    const a = p.a0 + t*p.sp*speed;
+    const x = Math.cos(a)*p.r, y = Math.sin(a)*p.r*0.62;
+    const xr = x*cs - y*sn + lag*(p.r/R), yr = x*sn + y*cs;
+    const tw = 0.45 + 0.55*Math.sin(t*p.tw + p.ph);
+    lctx.globalAlpha = clamp(b*(0.30+0.70*tw), 0, 1);
     lctx.fillStyle = p.col;
-    const px = xr + lagBase * (p.r / R);
-    lctx.beginPath(); lctx.arc(px, yr, p.sz, 0, TAU); lctx.fill();
+    lctx.beginPath(); lctx.arc(xr, yr, p.sz*k, 0, TAU); lctx.fill();
     if(p.sz > 1.7){
-      lctx.globalAlpha = clamp(b * 0.16 * tw, 0, 1);
-      lctx.beginPath(); lctx.arc(px, yr, p.sz * 2.8, 0, TAU); lctx.fill();
+      lctx.globalAlpha = clamp(b*0.16*tw, 0, 1);
+      lctx.beginPath(); lctx.arc(xr, yr, p.sz*2.8*k, 0, TAU); lctx.fill();
     }
   }
   lctx.globalAlpha = 1;
   lctx.globalCompositeOperation = 'source-over';
 }
+function drawLantern(t){
+  const b = clamp(B,0,1), bx = clamp(B,0,1.4);
+  lctx.setTransform(dpr,0,0,dpr,0,0);
+  lctx.clearRect(0,0,lw,lh);
+  lctx.translate(lw/2, padTop+R);
 
-function drawLantern(t, Bv){
-  lctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  lctx.clearRect(0, 0, lw, lh);
-  lctx.translate(lw/2, padTop + R);
-  const b = clamp(Bv, 0, 1), bx = clamp(Bv, 0, 1.45);
-
-  // hào quang tỏa quanh viền
   lctx.globalCompositeOperation = 'lighter';
-  lctx.strokeWidth = 0;
-  glowStroke(rimPath, 26, 0.035 * bx);
-  glowStroke(rimPath, 14, 0.055 * bx);
-  glowStroke(rimPath,  7, 0.09  * bx);
+  glowStroke(rimPath, 26, 0.035*bx);
+  glowStroke(rimPath, 12, 0.06*bx);
+  glowStroke(rimPath,  5, 0.12*bx);
   lctx.globalCompositeOperation = 'source-over';
 
   drawTail(t, b);
 
-  /* ---- mặt đèn: galaxy bên trong ---- */
+  /* mặt đèn — galaxy bên trong */
   lctx.save();
   lctx.clip(facePath);
   lctx.fillStyle = '#08060e';
-  lctx.fillRect(-R, -R, 2*R, 2*R);
+  lctx.fillRect(-R,-R,2*R,2*R);
 
-  // tinh vân xoáy chậm
   lctx.save();
-  lctx.rotate(nebA);
-  lctx.globalAlpha = clamp(0.9 * (0.10 + 0.90 * Math.pow(b, 1.15)), 0, 1);
+  lctx.rotate(nebRot);
+  lctx.globalAlpha = clamp(0.9*(0.10 + 0.90*Math.pow(b,1.15)), 0, 1);
   lctx.drawImage(neb, -nebSize/2, -nebSize/2, nebSize, nebSize);
   lctx.restore();
 
-  drawParts(t, b);
+  drawOrbit(t, b);
 
-  // bóng đèn ở tâm
   lctx.globalCompositeOperation = 'lighter';
-  const cr = R * (0.55 + 0.22 * b);
-  const g = lctx.createRadialGradient(0, 0, 0, 0, 0, cr);
-  g.addColorStop(0,    `rgba(255,250,238,${clamp(0.95*b + 0.06, 0, 1)})`);
-  g.addColorStop(0.22, `rgba(255,222,150,${clamp(0.5*b, 0, 1)})`);
-  g.addColorStop(0.55, `rgba(255,180,105,${clamp(0.16*b, 0, 1)})`);
-  g.addColorStop(1,    'rgba(255,170,90,0)');
+  const cr = R*(0.55 + 0.22*b);
+  const g = lctx.createRadialGradient(0,0,0,0,0,cr);
+  g.addColorStop(0,   `rgba(255,250,238,${clamp(0.95*b+0.05,0,1)})`);
+  g.addColorStop(0.22,`rgba(255,222,150,${clamp(0.5*b,0,1)})`);
+  g.addColorStop(0.55,`rgba(255,180,105,${clamp(0.16*b,0,1)})`);
+  g.addColorStop(1,   'rgba(255,170,90,0)');
   lctx.fillStyle = g;
-  lctx.beginPath(); lctx.arc(0, 0, cr, 0, TAU); lctx.fill();
+  lctx.beginPath(); lctx.arc(0,0,cr,0,TAU); lctx.fill();
 
-  // vignette giấy sẫm ở mép
   lctx.globalCompositeOperation = 'source-over';
-  const vg = lctx.createRadialGradient(0, 0, R * 0.45, 0, 0, R * 0.96);
-  vg.addColorStop(0, 'rgba(4,3,8,0)');
-  vg.addColorStop(1, 'rgba(4,3,8,0.5)');
+  const vg = lctx.createRadialGradient(0,0,R*0.45,0,0,R*0.96);
+  vg.addColorStop(0,'rgba(4,3,8,0)');
+  vg.addColorStop(1,'rgba(4,3,8,0.5)');
   lctx.fillStyle = vg;
-  lctx.fillRect(-R, -R, 2*R, 2*R);
+  lctx.fillRect(-R,-R,2*R,2*R);
 
-  // mép giấy bắt sáng
   lctx.globalCompositeOperation = 'lighter';
   lctx.lineWidth = 2;
-  lctx.strokeStyle = `rgba(255,215,150,${clamp(0.14 + 0.4*b, 0, 1)})`;
+  lctx.strokeStyle = `rgba(255,215,150,${clamp(0.14+0.4*b,0,1)})`;
   lctx.stroke(facePath);
   lctx.restore();
 
-  /* ---- khung đèn ---- */
+  /* khung gỗ */
   lctx.globalCompositeOperation = 'source-over';
-  lctx.strokeStyle = '#241a12'; lctx.lineWidth = 9;  lctx.stroke(rimPath);
-  lctx.strokeStyle = `rgba(255,206,142,${clamp(0.12 + 0.32*b, 0, 1)})`;
+  lctx.strokeStyle = '#241a12'; lctx.lineWidth = 9; lctx.stroke(rimPath);
+  lctx.strokeStyle = `rgba(255,206,142,${clamp(0.12+0.32*b,0,1)})`;
   lctx.lineWidth = 1.2; lctx.stroke(rimPath);
-
-  // nan hoa từ tâm ra 8 đỉnh
-  for(const ang of spokes){
-    const x = Math.cos(ang) * R * 0.985, y = Math.sin(ang) * R * 0.985;
+  for(const a of spokes){
+    const x = Math.cos(a)*R*0.985, y = Math.sin(a)*R*0.985;
     lctx.strokeStyle = '#241a12'; lctx.lineWidth = 3.2;
-    lctx.beginPath(); lctx.moveTo(0, 0); lctx.lineTo(x, y); lctx.stroke();
-    lctx.strokeStyle = `rgba(255,206,142,${clamp(0.10 + 0.28*b, 0, 1)})`;
+    lctx.beginPath(); lctx.moveTo(0,0); lctx.lineTo(x,y); lctx.stroke();
+    lctx.strokeStyle = `rgba(255,206,142,${clamp(0.10+0.28*b,0,1)})`;
     lctx.lineWidth = 1;
-    lctx.beginPath(); lctx.moveTo(0, 0); lctx.lineTo(x, y); lctx.stroke();
+    lctx.beginPath(); lctx.moveTo(0,0); lctx.lineTo(x,y); lctx.stroke();
   }
-  // hai vòng nan ngang
-  for(const [rr, w] of [[0.45, 2.6], [0.74, 1.8]]){
+  for(const [rr,w] of [[0.45,2.6],[0.74,1.8]]){
     lctx.strokeStyle = '#241a12'; lctx.lineWidth = w;
-    lctx.beginPath(); lctx.arc(0, 0, R * rr, 0, TAU); lctx.stroke();
-    lctx.strokeStyle = `rgba(255,206,142,${clamp(0.08 + 0.24*b, 0, 1)})`;
+    lctx.beginPath(); lctx.arc(0,0,R*rr,0,TAU); lctx.stroke();
+    lctx.strokeStyle = `rgba(255,206,142,${clamp(0.08+0.24*b,0,1)})`;
     lctx.lineWidth = 0.8;
-    lctx.beginPath(); lctx.arc(0, 0, R * rr, 0, TAU); lctx.stroke();
+    lctx.beginPath(); lctx.arc(0,0,R*rr,0,TAU); lctx.stroke();
   }
-  // bu-lông tâm
   lctx.fillStyle = '#241a12';
-  lctx.beginPath(); lctx.arc(0, 0, 5.5, 0, TAU); lctx.fill();
-  lctx.fillStyle = `rgba(255,235,190,${clamp(0.15 + 0.6*b, 0, 1)})`;
-  lctx.beginPath(); lctx.arc(0, 0, 2.2, 0, TAU); lctx.fill();
+  lctx.beginPath(); lctx.arc(0,0,5.5,0,TAU); lctx.fill();
+  lctx.fillStyle = `rgba(255,235,190,${clamp(0.15+0.6*b,0,1)})`;
+  lctx.beginPath(); lctx.arc(0,0,2.2,0,TAU); lctx.fill();
 }
 
-/* ================= Vẽ bầu trời ================= */
+/* ================= Vẽ bầu trời + NGỌC LINH giữa màn hình ================= */
 function skyGlow(x, y, r, rgb, a){
-  if(a <= 0.003) return;
-  const g = sctx.createRadialGradient(x, y, 0, x, y, r);
-  g.addColorStop(0, `rgba(${rgb},${a})`);
+  if(a <= 0.004) return;
+  const g = sctx.createRadialGradient(x,y,0,x,y,r);
+  g.addColorStop(0, `rgba(${rgb},${clamp(a,0,1)})`);
   g.addColorStop(1, `rgba(${rgb},0)`);
   sctx.fillStyle = g;
-  sctx.fillRect(x - r, y - r, r * 2, r * 2);
+  sctx.fillRect(x-r, y-r, r*2, r*2);
+}
+
+/* viên ngọc lấp lánh — thoi + tia sáng chữ thập */
+function drawGem(x, y, s, a){
+  sctx.fillStyle = `rgba(248,250,255,${(a*0.9).toFixed(3)})`;
+  sctx.beginPath();
+  sctx.moveTo(x, y-s); sctx.lineTo(x+s*0.62, y);
+  sctx.lineTo(x, y+s); sctx.lineTo(x-s*0.62, y);
+  sctx.closePath(); sctx.fill();
+  const L = s*2.6;
+  sctx.strokeStyle = `rgba(248,250,255,${(a*0.42).toFixed(3)})`;
+  sctx.lineWidth = 1;
+  sctx.beginPath();
+  sctx.moveTo(x, y-L); sctx.lineTo(x, y+L);
+  sctx.moveTo(x-L, y); sctx.lineTo(x+L, y);
+  sctx.stroke();
+  sctx.fillStyle = `rgba(248,250,255,${(a*0.16).toFixed(3)})`;
+  sctx.beginPath(); sctx.arc(x, y, s*2.6, 0, TAU); sctx.fill();
+}
+
+function drawWords(t, dt, lx, ly, b){
+  glyphPulse *= Math.exp(-1.8*dt);
+  sctx.globalCompositeOperation = 'lighter';
+  for(const sys of words){
+    for(const p of sys.ps){
+      if(!p.born){
+        if(t >= sys.t0 + p.delay) p.born = true;
+        else continue;
+      }
+      /* lò xo kéo hạt về vị trí của nó trong chữ */
+      p.vx += (sys.cx + p.hx - p.x)*30*dt;
+      p.vy += (sys.cy + p.hy - p.y)*30*dt;
+      /* con trỏ lướt qua: bụi dạt ra như bị thổi */
+      const mdx = p.x - mouse.x, mdy = p.y - mouse.y;
+      const md2 = mdx*mdx + mdy*mdy;
+      if(md2 < 6400 && md2 > 0.01){
+        const md = Math.sqrt(md2), f = (1 - md/80)*2200*dt;
+        p.vx += mdx/md*f; p.vy += mdy/md*f;
+      }
+      const dp = Math.exp(-3.1*dt);
+      p.vx *= dp; p.vy *= dp;
+      p.x += p.vx*dt; p.y += p.vy*dt;
+
+      const rx = p.x + Math.sin(t*0.55 + p.ph)*1.2;
+      const ry = p.y + Math.cos(t*0.47 + p.ph*1.7)*1.2;
+      /* ánh đèn rọi tới đâu, chữ sáng tới đó */
+      const dL = Math.hypot(rx - lx, ry - ly);
+      let ill = clamp(b,0,1.25)*1.5/(1 + (dL/(R*2.1))**2);
+      ill += glyphPulse*Math.exp(-dL/(R*1.7));
+      const tw = 0.55 + 0.45*Math.sin(t*p.tw + p.ph);
+      const a = clamp(tw*(0.10 + 0.92*clamp(ill,0,1.15)), 0, 1);
+      if(a < 0.015) continue;
+      sctx.fillStyle = `rgba(${p.col},${a.toFixed(3)})`;
+      if(p.s < 0.9){ sctx.fillRect(rx-p.s, ry-p.s, p.s*2, p.s*2); }
+      else{
+        sctx.beginPath(); sctx.arc(rx, ry, p.s, 0, TAU); sctx.fill();
+        if(p.big){
+          sctx.fillStyle = `rgba(${p.col},${(a*0.13).toFixed(3)})`;
+          sctx.beginPath(); sctx.arc(rx, ry, p.s*3.1, 0, TAU); sctx.fill();
+        }
+      }
+    }
+  }
+  /* ba viên ngọc: giữa dòng (lớn, tia sáng) + hai đầu (nhỏ) */
+  if(gemMid){
+    const g = gemMid;
+    const dL = Math.hypot(g.x - lx, g.y - ly);
+    const ill = clamp(clamp(b,0,1.25)*1.5/(1 + (dL/(R*2.1))**2)
+              + glyphPulse*Math.exp(-dL/(R*1.7)), 0, 1.15);
+    const tw = 0.6 + 0.4*Math.sin(t*1.7 + g.ph);
+    const a = clamp(tw*(0.22 + 0.78*ill), 0, 1)*0.95;
+    if(a > 0.02){
+      drawGem(g.x, g.y, g.s*(0.92 + 0.14*tw), a);
+      for(const sgn of [-1,1]){
+        const fx = g.x + sgn*gemSideDx;
+        drawGem(fx, g.y, g.s*0.62*(0.92 + 0.14*tw), a*0.65);
+      }
+    }
+  }
+  sctx.globalCompositeOperation = 'source-over';
 }
 
 function drawSky(t, dt){
-  sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const b = clamp(B, 0, 1.3);
+  sctx.setTransform(dpr,0,0,dpr,0,0);
   sctx.globalCompositeOperation = 'source-over';
   sctx.globalAlpha = 1;
   sctx.fillStyle = '#050409';
-  sctx.fillRect(0, 0, W, H);
-
+  sctx.fillRect(0,0,W,H);
   if(bgNeb){
-    sctx.globalAlpha = 0.85 + 0.15 * Math.sin(t * 0.05);
-    sctx.drawImage(bgNeb, 0, 0);
+    sctx.globalAlpha = 0.9;
+    sctx.drawImage(bgNeb, -Math.sin(theta)*10, 0);
     sctx.globalAlpha = 1;
   }
+  const { x:lx, y:ly } = lanternPos();
 
-  // vị trí hiện tại của đèn
-  const d = cordLen + padTop + R;
-  const lx = W/2 - Math.sin(theta) * d;
-  const ly = Math.cos(theta) * d;
-  const bx = clamp(B, 0, 1.3);
-
-  // ánh đèn rọi lên trời sao
   sctx.globalCompositeOperation = 'lighter';
-  skyGlow(lx, ly, Math.max(W, H) * 0.75, '255,190,130', 0.045 * bx);
-  skyGlow(lx, ly, R * 2.8, '255,186,120', 0.10 * bx);
-  skyGlow(lx, ly, R * 1.2, '255,205,140', 0.16 * bx);
+  skyGlow(lx, ly, Math.max(W,H)*0.7, '255,190,130', 0.04*b);
+  skyGlow(lx, ly, R*2.9, '255,186,120', 0.10*b);
+  skyGlow(lx, ly, R*1.25, '255,205,140', 0.16*b);
 
-  // sao trời nhấp nháy, sáng bừng gần đèn
-  const boostR = R * 3.4;
+  const boostR = R*3.2;
   for(const s of stars){
-    const aBase = s.a * (0.45 + 0.55 * Math.sin(t * s.tw + s.ph));
-    const dist = Math.hypot(s.x - lx, s.y - ly);
-    const al = clamp(aBase * (1 + bx * 0.9 * Math.max(0, 1 - dist / boostR)), 0, 1);
-    sctx.fillStyle = `rgba(${s.col},${al})`;
+    const base = s.a*(0.45 + 0.55*Math.sin(t*s.tw + s.ph));
+    const d = Math.hypot(s.x-lx, s.y-ly);
+    const al = clamp(base*(1 + b*0.9*Math.max(0, 1-d/boostR)), 0, 1);
+    sctx.fillStyle = `rgba(${s.col},${al.toFixed(3)})`;
     sctx.beginPath(); sctx.arc(s.x, s.y, s.r, 0, TAU); sctx.fill();
-    if(s.r > 1.25 && al > 0.55){
-      const g = sctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 5);
-      g.addColorStop(0, `rgba(${s.col},${al * 0.22})`);
-      g.addColorStop(1, `rgba(${s.col},0)`);
-      sctx.fillStyle = g;
-      sctx.fillRect(s.x - s.r*5, s.y - s.r*5, s.r*10, s.r*10);
-    }
   }
 
-  // sao băng
+  /* sao băng */
   shotTimer -= dt;
-  if(!shot && shotTimer <= 0){
-    const dir = Math.random() < 0.5 ? 1 : -1;
-    const a = rand(0.35, 0.6);
-    shot = {
-      x: rand(W*0.1, W*0.9), y: rand(0, H*0.25),
-      vx: dir * Math.cos(a) * rand(700, 1100),
-      vy: Math.sin(a) * rand(500, 800),
-      life: 0, max: rand(0.6, 1)
-    };
-    shotTimer = rand(6, 14);
+  if(shotTimer <= 0){
+    const a = rand(0.5,0.75), dir = Math.random()<0.5 ? 1 : -1;
+    shots.push({
+      x: rand(W*0.1,W*0.9), y: rand(0,H*0.3),
+      vx: dir*Math.cos(a)*rand(650,1000), vy: Math.sin(a)*rand(380,620),
+      life: 0, max: rand(0.55,0.95)
+    });
+    shotTimer = rand(5,12);
   }
-  if(shot){
-    shot.life += dt;
-    shot.x += shot.vx * dt; shot.y += shot.vy * dt;
-    if(shot.life > shot.max) shot = null;
-    else{
-      const al = Math.sin(Math.min(1, shot.life / shot.max) * Math.PI) * 0.9;
-      const x2 = shot.x - shot.vx * 0.085, y2 = shot.y - shot.vy * 0.085;
-      const g = sctx.createLinearGradient(shot.x, shot.y, x2, y2);
-      g.addColorStop(0, `rgba(255,244,224,${al})`);
-      g.addColorStop(1, 'rgba(255,244,224,0)');
-      sctx.strokeStyle = g; sctx.lineWidth = 1.5;
-      sctx.beginPath(); sctx.moveTo(shot.x, shot.y); sctx.lineTo(x2, y2); sctx.stroke();
-      sctx.fillStyle = `rgba(255,250,240,${al})`;
-      sctx.beginPath(); sctx.arc(shot.x, shot.y, 1.6, 0, TAU); sctx.fill();
-    }
+  for(let i=shots.length-1; i>=0; i--){
+    const s = shots[i];
+    s.life += dt; s.x += s.vx*dt; s.y += s.vy*dt;
+    if(s.life > s.max){ shots.splice(i,1); continue; }
+    const al = Math.sin(Math.min(1, s.life/s.max)*Math.PI)*0.9;
+    const x2 = s.x - s.vx*0.08, y2 = s.y - s.vy*0.08;
+    const g = sctx.createLinearGradient(s.x, s.y, x2, y2);
+    g.addColorStop(0, `rgba(255,244,224,${al})`);
+    g.addColorStop(1, 'rgba(255,244,224,0)');
+    sctx.strokeStyle = g; sctx.lineWidth = 1.4;
+    sctx.beginPath(); sctx.moveTo(s.x,s.y); sctx.lineTo(x2,y2); sctx.stroke();
   }
 
-  // sóng sáng lan tỏa khi chạm đèn
-  for(let i = rings.length - 1; i >= 0; i--){
+  drawWords(t, dt, lx, ly, b);
+
+  /* sóng sáng & tàn sao */
+  for(let i=rings.length-1; i>=0; i--){
     const r = rings[i];
-    r.r *= 1 + 1.5 * dt;
-    r.a *= Math.exp(-2.0 * dt);
-    if(r.a < 0.012){ rings.splice(i, 1); continue; }
-    sctx.strokeStyle = `rgba(255,216,160,${r.a})`;
+    r.r *= 1 + 1.6*dt; r.a *= Math.exp(-2.1*dt);
+    if(r.a < 0.012){ rings.splice(i,1); continue; }
+    sctx.strokeStyle = `rgba(255,216,160,${r.a.toFixed(3)})`;
     sctx.lineWidth = 1.4;
     sctx.beginPath(); sctx.arc(r.x, r.y, r.r, 0, TAU); sctx.stroke();
   }
-
-  // hạt sao văng ra
-  for(let i = sparks.length - 1; i >= 0; i--){
+  for(let i=sparks.length-1; i>=0; i--){
     const s = sparks[i];
     s.life -= dt;
-    if(s.life <= 0){ sparks.splice(i, 1); continue; }
-    s.vx *= Math.exp(-0.9 * dt); s.vy = s.vy * Math.exp(-0.9 * dt) - 18 * dt;
-    s.x += s.vx * dt; s.y += s.vy * dt;
-    const al = clamp(s.life / s.max, 0, 1) * 0.9;
-    sctx.fillStyle = `rgba(${s.col},${al})`;
+    if(s.life <= 0){ sparks.splice(i,1); continue; }
+    s.vx *= Math.exp(-0.9*dt);
+    s.vy = s.vy*Math.exp(-0.9*dt) - 14*dt;
+    s.x += s.vx*dt; s.y += s.vy*dt;
+    const al = clamp(s.life/s.max, 0, 1)*0.9;
+    sctx.fillStyle = `rgba(${s.col},${al.toFixed(3)})`;
     sctx.beginPath(); sctx.arc(s.x, s.y, s.s, 0, TAU); sctx.fill();
   }
   sctx.globalCompositeOperation = 'source-over';
 }
 
-/* ================= Vật lý con lắc & độ sáng ================= */
-function physics(t, dt){
-  if(!dragging){
-    const L = cordLen + padTop + R;
-    omega += (-(2400 / L) * Math.sin(theta) - 0.32 * omega) * dt;
-    omega += (Math.sin(t * 0.33) * 0.10 + Math.sin(t * 0.13 + 1.7) * 0.06) * dt; // gió rất khẽ
-    theta += omega * dt;
-  }
-  theta = clamp(theta, -1.35, 1.35);
-  tailSway += (clamp(-omega * 0.32, -0.36, 0.36) - tailSway) * Math.min(1, dt * 5.5);
-  pulse *= Math.exp(-1.9 * dt);
-  nebA += dt * 0.05;
-}
-
-function brightness(t, dt){
-  jitT -= dt;
-  if(jitT <= 0){ jit = rand(-1, 1); jitT = 0.08; } // đèn thật luôn run rẩy chút
-  let bb;
-  if(mode === 'off')         bb = 0.045;
-  else if(mode === 'steady') bb = 0.9 + jit * 0.025;
-  else if(mode === 'breath') bb = 0.52 + 0.46 * Math.sin(t * 0.85 * speed) + jit * 0.02;
-  else{ // chớp kiểu hội đèn
-    flick.t -= dt;
-    if(flick.t <= 0){
-      flick.t = rand(0.045, 0.20) / speed;
-      flick.target = Math.random() < 0.26 ? rand(0.05, 0.22) : rand(0.6, 1);
-    }
-    bb = B + (flick.target - B) * Math.min(1, dt * 16);
-  }
-  B = clamp(bb, 0.02, 1) + pulse * 0.7;
-}
-
-/* ================= Vòng lặp chính ================= */
-function frame(now){
-  const t = now / 1000;
-  const dt = Math.min(0.033, (now - last) / 1000);
-  last = now;
-
-  physics(t, dt);
-  brightness(t, dt);
-  drawSky(t, dt);
-  drawLantern(t, B);
-
-  pend.style.transform = `translateX(-50%) rotate(${theta}rad)`;
-  const ry   = clamp(-omega * 22, -13, 13) + Math.sin(t * 0.4) * 3;
-  const tilt = clamp(omega * 0.045, -0.05, 0.05);
-  lantern.style.transform = `perspective(900px) rotateY(${ry}deg) rotate(${tilt}rad)`;
-  cord.style.background = `rgba(255,222,175,${0.05 + 0.12 * clamp(B, 0, 1)})`;
-
-  requestAnimationFrame(frame);
-}
-requestAnimationFrame(frame);
-
-/* ================= Kéo / thả / chạm đèn ================= */
-function pAngle(e){
-  const dx = e.clientX - W/2;
-  const dy = Math.max(e.clientY, 60); // điểm treo ở y = 0
-  return -Math.atan2(dx, dy);
-}
-
-let downT = 0, moved = 0, lastCX = 0, lastCY = 0, lastMoveT = 0;
-
-lantern.addEventListener('pointerdown', e => {
-  e.preventDefault();
-  lantern.setPointerCapture(e.pointerId);
-  dragging = true;
-  lantern.classList.add('drag');
-  downT = performance.now(); lastMoveT = downT;
-  lastCX = e.clientX; lastCY = e.clientY; moved = 0;
-  omega *= 0.2;
-  dismissHint();
-});
-lantern.addEventListener('pointermove', e => {
-  if(!dragging) return;
-  const now = performance.now();
-  const dtm = Math.max(0.008, (now - lastMoveT) / 1000);
-  moved += Math.hypot(e.clientX - lastCX, e.clientY - lastCY);
-  lastCX = e.clientX; lastCY = e.clientY;
-  const na = clamp(pAngle(e), -1.15, 1.15);
-  omega = clamp((na - theta) / dtm, -5, 5);
-  theta = na;
-  lastMoveT = now;
-});
-function endDrag(e){
-  if(!dragging) return;
-  dragging = false;
-  lantern.classList.remove('drag');
-  if(performance.now() - downT < 280 && moved < 7) firePulse();
-}
-lantern.addEventListener('pointerup', endDrag);
-lantern.addEventListener('pointercancel', endDrag);
-
-/* Chạm một nhịp: đèn bừng, sóng sáng lan, hạt sao văng */
+/* ================= Tương tác ================= */
 function firePulse(){
   pulse = Math.min(pulse + 1.0, 1.5);
-  const d = cordLen + padTop + R;
-  const cx = W/2 - Math.sin(theta) * d;
-  const cy = Math.cos(theta) * d;
-  rings.push({ x: cx, y: cy, r: R * 0.55, a: 0.5 });
-  for(let i = 0; i < 16; i++){
-    const a = rand(0, TAU), sp = rand(70, 300);
+  const { x:cx, y:cy } = lanternPos();
+  rings.push({ x:cx, y:cy, r:R*0.55, a:0.5 });
+  for(let i=0; i<(mobile?10:16); i++){
+    const a = rand(0,TAU), sp = rand(60,280);
     sparks.push({
-      x: cx + Math.cos(a) * rand(10, R * 0.8),
-      y: cy + Math.sin(a) * rand(10, R * 0.6),
-      vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 40,
-      life: rand(0.7, 1.6), max: 1.6,
-      col: pick(['255,240,214', '255,214,150', '176,232,220']),
-      s: rand(0.8, 2)
+      x: cx + Math.cos(a)*rand(10,R*0.8),
+      y: cy + Math.sin(a)*rand(10,R*0.6),
+      vx: Math.cos(a)*sp, vy: Math.sin(a)*sp - 30,
+      life: rand(0.6,1.4), max: 1.4,
+      col: ['255,240,214','255,214,150','176,232,220'][(Math.random()*3)|0],
+      s: rand(0.8,1.9)
     });
   }
+  glyphPulse = Math.max(glyphPulse, 1.0);
+  chime();
+  hideHint();
+}
+function burstWord(sys, px, py){
+  for(const p of sys.ps){
+    p.born = true;
+    const dx = p.x - px, dy = p.y - py;
+    const d2 = dx*dx + dy*dy;
+    const d = Math.sqrt(d2) || 1;
+    const k = Math.exp(-d2/16000)*520 + 60;
+    p.vx += dx/d*k + gauss()*120;
+    p.vy += dy/d*k + gauss()*120;
+  }
+  glyphPulse = Math.max(glyphPulse, 0.85);
+  rings.push({ x:px, y:py, r:14, a:0.4 });
+  pluck();
+}
+function burstAll(px, py){
+  for(const sys of words) burstWord(sys, px, py);
+  rings.push({ x:px, y:py, r:20, a:0.55 });
   chime();
 }
 
-/* ================= Âm thanh khẽ khi chạm đèn ================= */
-function chime(){
-  if(!soundOn) return;
+function pointerAngle(e){
+  const dx = e.clientX - W/2;
+  const dy = Math.max(e.clientY, 40);
+  return -Math.atan2(dx, dy);
+}
+lcv.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  lcv.setPointerCapture(e.pointerId);
+  dragging = true; moved = 0; downT = performance.now();
+  lastPX = e.clientX; lastPY = e.clientY;
+  lcv._mt = downT;
+  omega *= 0.25;
+  hideHint();
+});
+lcv.addEventListener('pointermove', e => {
+  if(!dragging) return;
+  const now = performance.now();
+  const dtm = Math.max(0.008, (now - lcv._mt)/1000);
+  lcv._mt = now;
+  moved += Math.hypot(e.clientX - lastPX, e.clientY - lastPY);
+  lastPX = e.clientX; lastPY = e.clientY;
+  const na = clamp(pointerAngle(e), -1.25, 1.25);
+  omega = clamp((na - theta)/dtm, -5, 5);
+  theta = na;
+});
+function endDrag(){
+  if(!dragging) return;
+  dragging = false;
+  if(performance.now() - downT < 280 && moved < 8) firePulse();
+}
+lcv.addEventListener('pointerup', endDrag);
+lcv.addEventListener('pointercancel', endDrag);
+
+addEventListener('pointermove', e => { mouse.x = e.clientX; mouse.y = e.clientY; }, { passive:true });
+addEventListener('pointerdown', e => {
+  if(e.target === lcv) return;
+  if(e.target.closest && e.target.closest('#panel')) return;
+  const px = e.clientX, py = e.clientY;
+  let hit = false;
+  /* chạm viên ngọc giữa → cả dòng nổ tung */
+  if(gemMid && Math.hypot(px - gemMid.x, py - gemMid.y) < gemMid.fs*0.4){
+    burstAll(px, py); hit = true;
+  }
+  if(!hit) for(const sys of words){
+    if(Math.abs(px - sys.cx) < sys.halfW + 14 && Math.abs(py - sys.cy) < sys.halfH + 14){
+      burstWord(sys, px, py); hit = true; break;
+    }
+  }
+  if(!hit) rings.push({ x:px, y:py, r:8, a:0.22 });
+  hideHint();
+}, { passive:true });
+
+/* ================= Âm thanh khẽ (WebAudio, không cần file) ================= */
+function audio(){
+  if(!soundOn) return null;
   try{
     actx = actx || new (window.AudioContext || window.webkitAudioContext)();
     if(actx.state === 'suspended') actx.resume();
-    const t0 = actx.currentTime;
-    const mk = (f0, f1, g0, dur) => {
-      const o = actx.createOscillator(), g = actx.createGain();
-      o.type = 'sine';
-      o.frequency.setValueAtTime(f0, t0);
-      o.frequency.exponentialRampToValueAtTime(f1, t0 + 0.10);
-      g.gain.setValueAtTime(0.0001, t0);
-      g.gain.exponentialRampToValueAtTime(g0, t0 + 0.012);
-      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-      o.connect(g).connect(actx.destination);
-      o.start(t0); o.stop(t0 + dur + 0.05);
-    };
-    mk(560, 900, 0.055, 0.85);
-    mk(1120, 1500, 0.016, 0.5);
-  }catch(err){ /* bỏ qua nếu trình duyệt chặn âm thanh */ }
+    return actx;
+  }catch(err){ return null; }
 }
+function tone(f0, f1, g0, dur, delay=0){
+  const a = audio(); if(!a) return;
+  const t0 = a.currentTime + delay;
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = 'sine';
+  o.frequency.setValueAtTime(f0, t0);
+  o.frequency.exponentialRampToValueAtTime(Math.max(f1,1), t0 + dur*0.6);
+  g.gain.setValueAtTime(0.0001, t0);
+  g.gain.exponentialRampToValueAtTime(g0, t0 + 0.015);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g).connect(a.destination);
+  o.start(t0); o.stop(t0 + dur + 0.05);
+}
+function chime(){ tone(620, 930, 0.08, 0.9); tone(1240, 1560, 0.028, 0.5, 0.02); }
+function pluck(){ tone(340, 210, 0.06, 0.5); tone(1010, 760, 0.022, 0.3, 0.02); }
 
 /* ================= Bảng điều khiển ================= */
-document.querySelectorAll('.modes button').forEach(btn => {
+document.querySelectorAll('#panel [data-m]').forEach(btn => {
   btn.addEventListener('click', () => {
     mode = btn.dataset.m;
-    document.querySelectorAll('.modes button').forEach(b => b.classList.toggle('on', b === btn));
+    document.querySelectorAll('#panel [data-m]').forEach(b => b.classList.toggle('on', b === btn));
   });
 });
-document.getElementById('tempo').addEventListener('input', e => {
-  speed = parseFloat(e.target.value);
-  document.getElementById('tempoVal').textContent = speed.toFixed(2) + '×';
+const tempoEl = document.getElementById('tempo');
+const tempoVal = document.getElementById('tempoVal');
+tempoEl.addEventListener('input', () => {
+  speed = parseFloat(tempoEl.value);
+  tempoVal.textContent = speed.toFixed(2) + '×';
 });
 const sndBtn = document.getElementById('snd');
 sndBtn.addEventListener('click', () => {
   soundOn = !soundOn;
   sndBtn.textContent = soundOn ? 'ÂM · MỞ' : 'ÂM · TẮT';
   sndBtn.classList.toggle('on', soundOn);
+  if(soundOn) chime();
 });
 
-/* ================= Gợi ý mở màn ================= */
-let hintShown = false;
-setTimeout(() => { hint.classList.add('show'); hintShown = true; }, 900);
-setTimeout(() => hint.classList.remove('show'), 9000);
-let hintTO = null;
-function dismissHint(){
-  if(!hintShown) return;
-  hintTO = hintTO || setTimeout(() => hint.classList.remove('show'), 2200);
+/* ================= Gợi ý ================= */
+let hintTO = null, hintGone = false;
+function showHint(){
+  if(hintGone) return;
+  hintEl.classList.add('show');
+  hintTO = setTimeout(hideHint, 9000);
 }
+function hideHint(){
+  if(hintTO){ clearTimeout(hintTO); hintTO = null; }
+  hintEl.classList.remove('show');
+  hintGone = true;
+}
+setTimeout(showHint, 1400);
+
+/* ================= Vòng lặp chính ================= */
+function frame(now){
+  const dt = Math.min(0.033, (now - last)/1000) || 0.016;
+  last = now; tc += dt;
+  const t = tc;
+
+  physics(t, dt);
+  updateBrightness(t, dt);
+  nebRot += dt*0.02*speed;
+
+  drawSky(t, dt);
+  drawLantern(t);
+
+  pend.style.transform = `translateX(-50%) rotate(${theta}rad)`;
+  const ry = clamp(-omega*20, -12, 12) + Math.sin(t*0.4)*3;
+  lcv.style.transform = `perspective(900px) rotateY(${ry}deg)`;
+  cordEl.style.background = `rgba(255,222,175,${0.06 + 0.12*clamp(B,0,1)})`;
+
+  requestAnimationFrame(frame);
+}
+
+/* ================= Khởi động ================= */
+let rzT = null;
+addEventListener('resize', () => { clearTimeout(rzT); rzT = setTimeout(layout, 140); });
+
+let booted = false;
+function boot(){
+  if(booted) return; booted = true;
+  layout();
+  last = performance.now();
+  setTimeout(() => { pulse = 0.7; glyphPulse = 0.9; }, 700); // đèn "bật" khi mở màn
+  requestAnimationFrame(frame);
+}
+if(document.fonts && document.fonts.ready){
+  document.fonts.ready.then(boot);
+  setTimeout(boot, 1800); // dự phòng nếu font chậm
+}else boot();
 })();
 </script>
 </body>
